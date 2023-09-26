@@ -1,0 +1,92 @@
+<%- include('../layouts/admin/adminHeader') %>
+
+<div class="clearfix"></div>
+  <div class="content-wrapper">
+    <div class="container-fluid">
+    
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Category Data</h5>
+              <div class="table-responsive">
+                <a href="/admin/add-category" class="btn btn-primary">Add New category</a>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Category Name</th>
+                      <th scope="col"> Description</th>
+                      <th scope="col">Status</th> 
+                      <th scope="col" style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if(categories.length >0){
+
+                      for(let i=0;i<categories.length;i++){
+                     %>  
+                      
+                    
+                      
+                    <tr>
+                      <th scope="row"><%= i+1 %></th>
+                      <td><%= categories[i].Name %></td>
+                      <td><%= categories[i].Description %></td>
+                      <!-- list|| Unlist -->
+                      <td><% if(categories[i].IsActive === false) { %>
+                        <p style="color: red; font-weight: bold;">Active</p>
+                        <% } else { %>
+                        <p style="color: green; font-weight: bold;">Not Active</p>
+                        <% } %>
+                </td>
+
+
+
+                <td><% if(categories[i].IsActive === false) { %>
+                  <a href="/admin/notActive?cid=<%= categories[i]._id %>" class="btn btn-danger">Not Active</a>
+                 <script>console.log(cid,'ccccccccccccccccccccccc');</script> 
+
+                <% }else { %>
+                <a href="/admin/isActive?cid=<%= categories[i]._id %>" class="btn btn-primary">Active</a>
+                <% } %>
+
+              <a href="/category/edit-category?id=" class="btn btn-info">Edit</a>
+                    
+          
+          </td>
+
+                 
+                      </td>
+                    </tr>
+                    <% }
+                     } else { %> 
+                          <tr>
+                              <td colspan="6" class="text-center">Category Not Found</td>
+                          </tr>
+                          <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!--End Row-->
+
+     
+
+    <a href="/admin/dashboard" class="btn btn-primary d-block mx-auto" style="width: 10%; font-size: 14px;">Go Back</a>
+
+	  
+	  <!--start overlay-->
+		  <div class="overlay toggle-menu"></div>
+		<!--end overlay-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+    </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+    <%- include('../layouts/admin/adminFooter') %>

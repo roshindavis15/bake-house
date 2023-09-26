@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <!-- Add Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.5.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-XXX">
+    <!-- Add your custom CSS file if you have one -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            max-width: 400px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            font-size: 24px;
+            text-align: center;
+            padding: 20px 0;
+            color: #333; /* Darken the title color */
+        }
+        .card-text {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 30px; /* Add spacing below the text */
+        }
+        .form-group {
+            text-align: center; /* Center the OTP field text */
+            padding: 0 20px;
+        }
+        .form-control {
+            border-radius: 5px;
+            padding: 15px; /* Increase input padding for a comfortable touch */
+            font-size: 18px; /* Increase font size for better readability */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow to the input */
+        }
+        /* Adjust button size and style */
+        .btn-primary {
+            border-radius: 5px;
+            font-size: 18px;
+            padding: 12px 24px; /* Slightly larger padding for the button */
+            width: 100%;
+            background-color: #007bff; /* Use a primary blue color for the button */
+            border: none; /* Remove the default button border */
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="card-title">OTP Verification</h1>
+                <p class="card-text">Please enter the OTP you received in your email:</p>
+                <form action="/otpverify" method="post">
+                    <div class="form-group">
+                        <input type="text" id="otp" name="otp" class="form-control" placeholder="Enter OTP" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Verify</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Bootstrap JS and Popper.js for Bootstrap components -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.5.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-XXX"></script>
+    <!-- Add your custom scripts if needed -->
+</body>
+</html>

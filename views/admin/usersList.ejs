@@ -1,0 +1,102 @@
+<%- include('../admin/adminHeaders') %>
+
+<div class="clearfix"></div>
+<a href="/admin/home" style="text-decoration: none; color: #000;">Go to Home</a><br><br>
+  <div class="content-wrapper">
+    <div class="container-fluid">
+     
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Customers Data</h5>
+              <div class="table-responsive">
+                <table id="myDataTable" class="table">
+
+                  
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Email</th>
+                      <th scope="col">Mobile</th>
+                      <th scope="col">Image</th>
+                      <th scope="col">Verified</th>
+                      <th scope="col">Status</th>
+                      <th scope="col" style="text-align: center;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    
+                    <% if(users.length > 0) {
+                      
+                      for(let i=0; i<users.length; i++) {
+                    %>
+                    <tr>
+                      <th scope="row"><%= i+1 %></th>
+                      <td><%= users[i].name %></td>
+                      <td><%= users[i].email %></td>
+                      <td><%= users[i].mobile %></td>
+
+
+                      <td><img src="/imges/userImages/<%= users[i].image %>" alt="<%= users[i].image %>" width="50%" height="50%" style="border-radius: 50%;"></td>
+                      
+                      
+
+                      <!-- verified || unverified -->
+                      <td><% if(users[i].is_varified == 0) { %>
+                              <p style="color: red; font-weight: bold;">Not Verified</p>
+                          <% } else { %>
+                              <p style="color: green; font-weight: bold;">Verified</p>
+                          <% } %>
+                      </td>
+
+                      <!-- blocked|| Unblocked -->
+                      <td><% if(users[i].block === true) { %>
+                        <p style="color: red; font-weight: bold;">Block</p>
+                    <% } else { %>
+                        <p style="color: green; font-weight: bold;">Unblock</p>
+                    <% } %>
+                </td>
+
+                      <td>
+                         <!-- <% console.log("users[i].block: ", users[i].block); %> -->
+                        <% if(!users[i].block ) { %>
+                          
+                        <a href="/admin/blockUser?uid=<%= users[i]._id %>"class="btn btn-danger">Block</a>
+                        <% } else  { %>
+                        <a href="/admin/unblockUser?uid=<%= users[i]._id %>" class="btn btn-success">Unblock</a>
+
+                      <% } %>
+
+                      </td>
+                    </tr>
+                          <% }
+                              } else { %>
+                          <tr>
+                              <td colspan="6" class="text-center">Users Not Found</td>
+                          </tr>
+                          <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!--End Row-->
+      <a href="/admin/dashboard" class="btn btn-primary d-block mx-auto" style="width: 10%; font-size: 14px;">Go Back</a>
+	  
+	  <!--start overlay-->
+		  <div class="overlay toggle-menu"></div>
+		<!--end overlay-->
+
+    </div>
+    <!-- End container-fluid-->
+    
+    </div><!--End content-wrapper-->
+   <!--Start Back To Top Button-->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+    <!--End Back To Top Button-->
+	
+	
+    <%- include('../admin/adminfooter') %>
