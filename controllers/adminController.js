@@ -362,8 +362,7 @@ const editProductLoad= async(req,res)=>{
  const editProduct= async(req,res)=>{
     console.log(req.body);
     try {
-        // const imagePath=req.file.filename;
-        // console.log("imagePath:",);
+       
 
         let updateFields={
             name:req.body.name,
@@ -372,7 +371,7 @@ const editProductLoad= async(req,res)=>{
             description:req.body.description,
             
         };
-        console.log("upadateFIelds:",updateFields);
+        
     } catch (error) {
         console.log(error.message);
     }
