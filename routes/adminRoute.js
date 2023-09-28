@@ -69,6 +69,9 @@ admin_route.get('/unblockUser',adminAuth.isLogin,adminController.unblockUser)
 admin_route.get('/unlist',adminAuth.isLogin,adminController.unlistProduct);
 admin_route.get('/list',adminAuth.isLogin,adminController.listProduct);
 
+admin_route.get('/edit-product',adminAuth.isLogin,adminController.editProductLoad);
+admin_route.post('/editProduct',adminAuth.isLogin,adminController.editProduct);
+
 admin_route.get('/notActive',adminAuth.isLogin,adminController.notActiveCategory);
 admin_route.get('/isActive',adminAuth.isLogin,adminController.ActiveCategory);
 

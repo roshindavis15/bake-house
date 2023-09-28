@@ -118,11 +118,11 @@ const loadDashboard=async(req,res)=>{
     }
 }
 const logout=async(req,res)=>{
-
+       
     try {
         
         req.session.destroy();
-        res.redirect('/admin/login');
+        res.redirect('/admin');
     } catch (error) {
         
         console.log(error.message);
@@ -347,6 +347,37 @@ const listProduct= async(req,res)=>{
     }
 }
 
+const editProductLoad= async(req,res)=>{
+    try {
+        const productId=req.query.pid;
+        console.log("productId:",productId);
+        const editProduct=await Product.findById(productId);
+        if(editProduct){
+            res.render('editProduct',{product:editProduct});
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+ const editProduct= async(req,res)=>{
+    console.log(req.body);
+    try {
+        // const imagePath=req.file.filename;
+        // console.log("imagePath:",);
+
+        let updateFields={
+            name:req.body.name,
+            price:req.body.price,
+            stock:req.body.stock ,
+            description:req.body.description,
+            
+        };
+        console.log("upadateFIelds:",updateFields);
+    } catch (error) {
+        console.log(error.message);
+    }
+ }
+
 const notActiveCategory= async(req,res)=>{
    try{
     const categoryId=req.query.cid;
@@ -391,7 +422,9 @@ module.exports={
     unlistProduct,
     listProduct,
     notActiveCategory,
-    ActiveCategory
+    ActiveCategory,
+    editProductLoad,
+    editProduct
     
 
 

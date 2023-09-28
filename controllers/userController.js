@@ -211,7 +211,9 @@ const loadHome = async (req, res) => {
 const shopLoad=async(req,res) =>{
     try {
         const productData= await Product.find({unlist:false});
+        
         const categoryData= await Category.find({IsActive:false});
+        console.log(categoryData);
         
 
         res.render('shop',{product:productData,category:categoryData});

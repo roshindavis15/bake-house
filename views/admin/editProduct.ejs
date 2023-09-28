@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #fdd7e4; /* Light pink background color */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3>Edit Product</h3>
+                    <p>Customize your product</p>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/editProduct" method="post">
+                        <input type="hidden" name="product_id" value="<%= product._id %>">
+                        
+                        <div class="form-group">
+                            <label for="name">Product Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="<%=product.name%>" placeholder="Enter Product Name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="number" class="form-control" id="price" name="price" value="<%=product.price%>" placeholder="Enter Price" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="stock">Stock</label>
+                            <input type="number" class="form-control" id="stock" name="stock" value="<%=product.stock%>" placeholder="Enter Stock" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" name="description" placeholder="Enter Product Description" required><%=product.description%></textarea>
+                        </div>
+                        
+                     
+                        
+                        <button type="submit" class="btn btn-danger">Update Product</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
