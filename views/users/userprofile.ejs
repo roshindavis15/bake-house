@@ -5,15 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        /* Custom styles for the profile container */
-        .profile-container {
-            background-color: #f8f9fa;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-top: 50px;
-        }
-
         /* Custom styles for the profile heading */
         .profile-heading {
             font-size: 36px;
@@ -60,32 +51,37 @@
             background-color: #ff5733;
             color: #fff;
         }
+        
     </style>
 </head>
 <body>
-    <div class="container mt-5 profile-container">
-        <h1 class="profile-heading">Welcome, <%= user.name %></h1>
+    <div class="container mt-5">
+        <div class="card profile-container">
+            <div class="card-body">
+                <h1 class="profile-heading">Welcome, <%= user.name %></h1>
 
-        <table class="table table-bordered profile-table">
-            <tr>
-                <th>Name</th>
-                <td><%= user.name %></td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td><%= user.email %></td>
-            </tr>
-            <tr>
-                <th>Mobile Number</th>
-                <td><%= user.mobile %></td>
-            </tr>
-        </table>
+                <table class="table table-bordered profile-table">
+                    <tr>
+                        <th>Name</th>
+                        <td><%= user.name %></td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td><%= user.email %></td>
+                    </tr>
+                    <tr>
+                        <th>Mobile Number</th>
+                        <td><%= user.mobile %></td>
+                    </tr>
+                </table>
 
-        <div class="profile-buttons">
-            <a href="/edit?id=<%= user._id %>" class="btn btn-primary">Edit Profile</a>
-            <a href="/logout" class="btn btn-danger">Logout</a>
-            <!-- Add Address Management button here -->
-            <a href="/addressManagement" class="btn btn-info">Address Management</a>
+                <div class="profile-buttons">
+                    <a href="/edit?id=<%= user._id %>" class="btn btn-primary">Edit Profile</a>
+                    <a href="/logout" class="btn btn-danger">Logout</a>
+                    <!-- Add Address Management button here -->
+                    <a href="/addressManagement" class="btn btn-info">Address Management</a>
+                </div>
+            </div>
         </div>
     </div>
 </body>

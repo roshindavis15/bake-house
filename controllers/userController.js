@@ -213,10 +213,10 @@ const shopLoad=async(req,res) =>{
         const productData= await Product.find({unlist:false});
         
         const categoryData= await Category.find({IsActive:false});
-        console.log(categoryData);
+    
         
 
-        res.render('shop',{product:productData,category:categoryData});
+        res.render('shop',{product:productData,category:categoryData,user:req.session.user_id});
     } catch (error) {
         console.log(error.message);
     }
@@ -226,7 +226,9 @@ const shopLoad=async(req,res) =>{
 const userLogout=async(req,res)=>{
     try {
         
-        req.session.destroy();  
+        // req.session.destroy();
+        delete req.session.user_id 
+        res.redirect('/')
         
 
     } catch (error) {

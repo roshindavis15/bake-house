@@ -371,7 +371,15 @@ const editProductLoad= async(req,res)=>{
             description:req.body.description,
             
         };
-        
+       const productData= await Product.findByIdAndUpdate(
+        req.body.product_id,
+        {$set:updateFields},
+        {new:true}
+       );
+       if(!productData){
+        return res.status(404).json({error:"product not found"});
+       }
+        return res.redirect("/admin/productIndex");
     } catch (error) {
         console.log(error.message);
     }
