@@ -4,7 +4,7 @@ const isLogin= async(req,res,next)=>{
 
     try {
         
-       if(req.session.user_id) { }
+       if(req.session.admin_id) { }
 
        else{
          res.redirect('/admin');

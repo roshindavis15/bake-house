@@ -12,7 +12,11 @@ const   addProduct= (productDatas,imagePaths)=>{
 
         const{name,price,description,category,offer,stock}=productDatas;
         
-        
+        const existingProduct= await Product.findOne({name:name});
+
+        if(existingProduct){
+            reject("This Product is Already Exists")
+        } else{
 
         const products= new Product({
             name:name,
@@ -27,7 +31,7 @@ const   addProduct= (productDatas,imagePaths)=>{
              });
              try {
                 const productData = await products.save();
-                console.log(productData);
+                
                 
                     resolve(productData);
                 
@@ -35,6 +39,7 @@ const   addProduct= (productDatas,imagePaths)=>{
                 console.error(error);
                 reject(error.message);
             }
+        }
         });
     }
 

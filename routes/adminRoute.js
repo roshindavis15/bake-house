@@ -47,7 +47,7 @@ admin_route.post('/',adminAuth.isLogout,adminController.verifyLogin);
 admin_route.get('/home',adminAuth.isLogin,adminController.loadDashboard);
 
 admin_route.get('/logout',adminAuth.isLogin,adminController.logout);
-
+ 
 admin_route.get('/forget',adminAuth.isLogout,adminController.forgetLoad);
 admin_route.post('/forget',adminController.forgetVerify);
 

@@ -176,9 +176,9 @@ const verifyLogin = async (req, res) => {
         }
         else{
             req.session.user_id=userData._id;
-            console.log(req.session.user_id);
             
-          res.redirect('home');    //here check
+            
+          res.redirect('home');   
         }
 
        }
@@ -226,7 +226,7 @@ const shopLoad=async(req,res) =>{
 const userLogout=async(req,res)=>{
     try {
         
-        // req.session.destroy();
+        
         delete req.session.user_id 
         res.redirect('/')
         

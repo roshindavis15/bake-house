@@ -7,6 +7,7 @@ const randomstring= require('randomstring');
 const config= require("../config/config")
 const nodemailer= require("nodemailer");
 const productHelper=require('../helpers/productHelpers');
+const adminHelper= require("../helpers/adminHelpers")
 
 
 
@@ -59,48 +60,18 @@ const sendResetPasswordMail=async(name,email,token)=>{
 
 const loadLogin=async(req,res)=>{
     try {
-        
-       res.render('login')
-
+        await adminHelper.loadingLogin(req,res)
+    
     } catch (error) {
         console.log(error.message);
     }
 }
 
+
 const verifyLogin=async(req,res)=>{
     try {
+        await adminHelper.verifyingLogin(req,res)
         
-        const email=req.body.email;
-        const password=req.body.password;
-        const userData= await Admin.findOne({email:email})
-        console.log(userData);
-        
-        if(userData){
-            console.log("adminpass:",userData.password);
-         
-       const PasswordMatch= await bcrypt.compare(password,userData.password)
-          
-           if(PasswordMatch){
-         
-             if(userData.is_admin===0){
-                res.render('login',{message:"Email and Password is incorrect"});
-             }else{
-                req.session.user_id = userData._id
-                res.redirect("/admin/home");
-             }
-
-           }else{
-            
-            res.render('login',{message:"Email and Password is incorrect"});
-
-           }
-
-        }
-        else{
-            res.render('login',{message:"Email and Password is incorrect"});
-        }
-    
-    
     } catch (error) {
         console.log(error.message);
     }
@@ -109,19 +80,20 @@ const verifyLogin=async(req,res)=>{
 const loadDashboard=async(req,res)=>{
 
     try {
-        const userData= await User.find().select('name email mobile');
-        
-        res.render('index',{users:userData});
+        await adminHelper.loadingDashboard(req,res)
         
     } catch (error) {
         console.log(error.message);
     }
 }
+
 const logout=async(req,res)=>{
        
     try {
         
-        req.session.destroy();
+        delete req.session.admin_id;
+        res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+
         res.redirect('/admin');
     } catch (error) {
         
@@ -254,26 +226,38 @@ const loadProduct = async(req,res)=>{
 const addProduct = async (req, res) => {
     try {
        
-   
+   console.log('hjhjh');
+   console.log(req.files);
     const imagePaths=req.files.map(file => file.filename);
-    const productData = await productHelper.addProduct(req.body,imagePaths);
-  const products = await Product.find()
+     productHelper.addProduct(req.body,imagePaths).then((productData)=>{
+
+        res.json({
+            success:true
+        })
+     }).catch((err)=>{
+        res.json({
+            success:false
+        })
+     });
+//   const products = await Product.find()
         
        
 
         // Checking productData  not empty before rendering
         
-        if (productData) {
-             res.redirect('/admin/productIndex')
-            // res.render('productIndex', { products: products});
-        } else {
-            res.render('productIndex');
-        }
+        // if (productData) {
+        //      res.js
+        //     // res.render('productIndex', { products: products});
+        // } else {
+        //     res.render('productIndex');
+        // }
     } catch (error) {
         console.log(error.message);
+        
        
-        res.status(500).send("Internal server error");
-    }
+        res.render('existingProductPopup');
+        
+    };
 }
 
 const categoryLoad= async(req,res)=>{
@@ -287,7 +271,7 @@ const addCategory= async(req,res)=>{
     try {
         
         const categoryData= await productHelper.addCategory(req.body);
-        console.log( categoryData);
+     
 
         if(categoryData){
             res.redirect('/admin/category');
@@ -432,7 +416,7 @@ module.exports={
     ActiveCategory,
     editProductLoad,
     editProduct
-    
+    
 
 
 }

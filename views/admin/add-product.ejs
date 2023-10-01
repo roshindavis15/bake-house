@@ -126,7 +126,7 @@
             </div>
             <div class="row tm-edit-product-row">
               <div class="col-xl-6 col-lg-6 col-md-12">
-                <form action="/admin/add-product" method="post" enctype="multipart/form-data" class="tm-edit-product-form">
+                <form action="/admin/add-product" method="post" enctype="multipart/form-data" class="tm-edit-product-form" id="add-product-form"  onsubmit="checkProductAndSubmit()">
                   <div class="form-group mb-3">
                     <label
                       for="name"
@@ -251,9 +251,12 @@
                 </div>
               </div>
               <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-block text-uppercase">Add Product Now</button>
+                <button type="submit" class="btn btn-primary btn-block text-uppercase productAddBtn">Add Product Now</button>
               </div>
             </form>
+           
+           
+
             </div>
           </div>
         </div>
@@ -280,5 +283,51 @@
         $("#expire_date").datepicker();
       });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  const productAddBtn = document.querySelector('.productAddBtn')
+  productAddBtn.addEventListener('click',checkProductAndsubmit)
+
+  function checkProductAndsubmit(e){
+    e.preventDefault()
+    var productName=document.getElementById('name').value;
+
+    fetch('/admin/add-product',{
+      method:'POST',
+      body:new FormData(document.getElementById('add-product-form')),
+      
+       })
+       .then(response=>response.json())
+       .then(data=>{
+
+        if(data.success){
+          Swal.fire({
+          icon: 'success',
+          title: 'Product Added',
+          text: 'The product has been added successfully!',
+        })
+        location.reload()
+        return
+        }
+        else{
+          Swal.fire({
+          icon: 'error',
+          title: 'Product Already Exists',
+          text: 'This product already exists. Please check and try again.',
+        });
+        return
+        }
+        if(data.existingProduct){
+          document.getElementById('alert-message').style.display = 'block';
+        }else{
+          document.getElementById('alert-message').style.display = 'none';
+          document.getElementById('add-product-form').submit();
+        }
+       })
+       
+  }
+</script>
+   
   </body>
 </html>
