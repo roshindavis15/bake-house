@@ -226,7 +226,7 @@ const loadProduct = async(req,res)=>{
 const addProduct = async (req, res) => {
     try {
        
-   console.log('hjhjh');
+   
    console.log(req.files);
     const imagePaths=req.files.map(file => file.filename);
      productHelper.addProduct(req.body,imagePaths).then((productData)=>{
@@ -336,6 +336,7 @@ const editProductLoad= async(req,res)=>{
         const productId=req.query.pid;
         console.log("productId:",productId);
         const editProduct=await Product.findById(productId);
+        
         if(editProduct){
             res.render('editProduct',{product:editProduct});
         }

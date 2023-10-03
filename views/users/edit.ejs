@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #fdd7e4; /* Light pink background color */
+            background-color: #fdd7e4; 
         }
     </style>
 </head>
@@ -22,7 +22,7 @@
                     <p>Customize your  profile</p>
                 </div>
                 <div class="card-body">
-                    <form action="/edit" method="post">
+                    <form action="/edit" method="post" id="update-profile-form">
                         <input type="hidden" name="user_id" value="<%= user._id.toString() %>">
                         
                         <div class="form-group">
@@ -40,7 +40,7 @@
                             <input type="text" class="form-control" id="mobile" name="mobile" value="<%= user.mobile %>" placeholder="Enter Your Contact Number" required>
                         </div>
                         
-                        <button type="submit" class="btn btn-danger">Update Profile</button>
+                        <button type="submit" class="btn btn-danger  profileUpdateBtn">Update Profile</button>
                     </form>
                 </div>
             </div>
@@ -51,5 +51,56 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+ const profileUpdateBtn=document.querySelector('.profileUpdateBtn')
+    profileUpdateBtn.addEventListener('click',checkProfileAndsubmit);
+   async function checkProfileAndsubmit(e){
+        e.preventDefault()
+      
+       const email = document.getElementById('email').value;
+       const mobile = document.getElementById('mobile').value;
+       
+        fetch('/edit',{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+                email,
+                mobile
+              
+            }) 
+
+        })
+        .then(response=>response.json())
+        .then(async data=>{
+            console.log("data:",data);
+            if(data.success){
+             await Swal.fire({
+          icon: 'success',
+          title: 'Profile Updated',
+          text: 'The profile has been updated successfully!',
+        });
+        location.href=''
+        return 
+            }
+            else{
+          Swal.fire({
+          icon: 'error',
+          title: 'User Already Exists',
+          text: 'this email already exists. Please try with different email.',
+        });
+        return  
+            }
+            if(data.existingMail){
+                document.getElementById('alert-message').style.display='block';
+            }else{
+                document.getElementById('alert-message').style.display='none';
+                document.getElementById('update-profile-form').submit();
+            }
+        })
+    }
+</script> 
 </body>
 </html>

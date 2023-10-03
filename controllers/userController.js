@@ -200,7 +200,7 @@ const verifyLogin = async (req, res) => {
 const loadHome = async (req, res) => {
     try {
         const userData = await User.findById({ _id: req.session.user_id });
-        console.log("userData:",userData);
+        
         
         res.render('home', { user: userData});
         
@@ -221,7 +221,23 @@ const shopLoad=async(req,res) =>{
         console.log(error.message);
     }
 }
-
+const singleProductView= async(req,res)=>{
+    try {
+        const productId=req.query.pid;
+        const singleProduct= await Product.findById(productId);
+        const categoryIdOfProduct= await Category.findById(singleProduct.category);
+        console.log("categoryIdOfProduct:",categoryIdOfProduct);
+        const categoryOfProduct= await Category.findById(categoryIdOfProduct);
+        console.log("categoryOfProduct:",categoryOfProduct);
+        if(singleProduct){
+            res.render('single-product',{product:singleProduct,category:categoryOfProduct,user:req.session.user_id});
+        }
+        
+        
+    } catch (error) {
+        console.log(error.message);
+    }
+}
 
 const userLogout=async(req,res)=>{
     try {
@@ -250,7 +266,7 @@ const forgetVerify= async(req,res)=>{
     try {
         const email=req.body.email;
         const userData=await User.findOne({email:email});
-        console.log(userData);
+       
         if(userData){
                      
             if(userData.is_varified===0){
@@ -337,34 +353,51 @@ const editLoad = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-    try {
+  try {
+    
+      const userId = req.body.user_id;
+      console.log(req.body);
+      
+      let updateFields = {
+          name: req.body.name,
+          email: req.body.email,
+          mobile: req.body.mobile
+      };
+      
+      const existingUser = await User.findOne({
+          $or: [
+              { email: req.body.email },
+              { mobile: req.body.mobile }
+          ],
+          _id: { $ne: userId }
+      });
 
-        
-        let updateFields = {
-            name: req.body.name,
-            email: req.body.email,
-            mobile: req.body.mobile
-        };
-        console.log(updateFields);
+      if (existingUser) {
+           res.json({ success:false });
+      } else {
+       
+          const userData = await User.findByIdAndUpdate(
+            {  _id:req.session.user_id},
+              { $set: updateFields },
+              { new: true }
+              
+          );
+          console.log(" hj:",userData);
 
-        
+          res.json({userData,
+        success:true
+    })
 
-        const userData = await User.findByIdAndUpdate(
-            req.body.user_id,
-            { $set: updateFields },
-            { new: true }
-        );
-        
+         
+         
+           
+      }
+      
 
-        if (!userData) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        return res.render('home');
-    } catch (error) {
-        console.log(error.message);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
+  } catch (error) {
+      console.log(error.message);
+      
+  }
 };
 
 
@@ -388,7 +421,7 @@ const addAddress= async(req,res)=>{
 }
 const submitAddress= async(req,res)=>{
     try {
-       userId= req.session.user_id;
+      const userId= req.session.user_id;
         userHelper.userAddress(req.body,res,userId).then((data)=>{
             res.redirect('http://localhost:3000/addressManagement');
         });
@@ -488,7 +521,7 @@ const setasDefault= async(req,res)=>{
         }
         console.log("currentDefaultAddress:",currentDefaultAddress);
         const addressDataToUpdate= await Address.findOneAndUpdate({_id:addressId},{$set:{"address.0.isDefault": true}});
-        console.log("addressDataToUpdate:",addressDataToUpdate);
+        
         
 
         return res.redirect('/addressManagement') 
@@ -524,5 +557,6 @@ module.exports={
     editAddress,
     updateAddress,
     deleteAddress,
-    setasDefault
+    setasDefault,
+    singleProductView
 }

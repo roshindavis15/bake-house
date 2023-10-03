@@ -29,12 +29,12 @@ const multer=require("multer");
 
 
 const storage=multer.diskStorage({
-    destination:function(){
-     cb(null,path.join(__dirname,'../public,userImages'));
+    destination:function(req,file,cb){
+     cb(null,'public/frutika-master/userImages');
     },
     filename:function(req,file,cb){
-     const name=Date.now()+'-'+file.originalname;
-     cb(null,name);
+        const uniqueSuffix=Date.now()+'-'+file.originalname
+     cb(null,uniqueSuffix);
     }
 });
     const upload=multer({storage:storage});
@@ -69,7 +69,9 @@ user_route.get('/profile',auth.isLogin,userController.loadprofile);
 
 user_route.get('/edit', auth.isLogin, userController.editLoad);
 
-user_route.get('/shop',auth.isLogin,userController.shopLoad);     
+user_route.get('/shop',auth.isLogin,userController.shopLoad); 
+
+user_route.get('/singleProduct',auth.isLogin,userController.singleProductView);
       
 user_route.post('/edit',userController.updateProfile);
 
