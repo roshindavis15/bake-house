@@ -63,7 +63,7 @@
 							<form action="index.html">
 								<input type="number" placeholder="0">
 							</form>
-							<a href="cart.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
+							<a href="/addtoCart?pid=<%=product._id %>" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
 							<%if(typeof category !='undefined'){%>
 							<p><strong>Category: </strong><%=category.Name%></p>
 							<%}%>

@@ -72,7 +72,11 @@ user_route.get('/edit', auth.isLogin, userController.editLoad);
 user_route.get('/shop',auth.isLogin,userController.shopLoad); 
 
 user_route.get('/singleProduct',auth.isLogin,userController.singleProductView);
-      
+
+user_route.get('/cart',auth.isLogin,userController.loadCart);
+
+user_route.get('/addtoCart',auth.isLogin,userController.addToCart);
+
 user_route.post('/edit',userController.updateProfile);
 
 user_route.post('/otpverify',userController.otpverify);

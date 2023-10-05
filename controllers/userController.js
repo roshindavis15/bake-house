@@ -1,10 +1,12 @@
+const mongoose = require('mongoose')
 const User=require('../models/userModel');
 const bcrypt= require('bcrypt');
-const mongoose = require('mongoose')
+
 const userHelper = require('../helpers/userHelpers')
 const Product=require("../models/productsModel");
 const Category=require('../models/categoryModel');
 const Address=require('../models/addressModel');
+const Cart= require('../models/cartModel');
 const nodemailer=require('nodemailer')
 
 const config=require("../config/config");
@@ -226,9 +228,9 @@ const singleProductView= async(req,res)=>{
         const productId=req.query.pid;
         const singleProduct= await Product.findById(productId);
         const categoryIdOfProduct= await Category.findById(singleProduct.category);
-        console.log("categoryIdOfProduct:",categoryIdOfProduct);
+        
         const categoryOfProduct= await Category.findById(categoryIdOfProduct);
-        console.log("categoryOfProduct:",categoryOfProduct);
+        
         if(singleProduct){
             res.render('single-product',{product:singleProduct,category:categoryOfProduct,user:req.session.user_id});
         }
@@ -237,6 +239,157 @@ const singleProductView= async(req,res)=>{
     } catch (error) {
         console.log(error.message);
     }
+}
+
+const addToCart=async(req,res)=>{
+    try {
+        const productId=req.query.pid;
+        console.log("productId:",productId);
+        
+        let cart= await Cart.findOne({user_id:req.session.user_id});
+        console.log("existcart:",cart);
+
+               if(!cart){
+                    let newCart=new Cart({user_id:req.session.user_id,products:[]});
+                    await newCart.save();
+            
+                    cart=newCart;
+                   
+                  }
+                  console.log("newCart:",cart);
+
+        const existingProductIndex=cart.products.findIndex((product)=>{
+            return product.productId.toString()===productId;
+            
+        })
+        console.log("existingProductIndex:",existingProductIndex);
+        if(existingProductIndex=== -1){
+            const product= await Product.findById(productId);
+            const total=product.price;
+            cart.products.push({
+                productId:productId,
+                quantity:1,
+                total,
+            })
+            res.render('cart');
+        }else{
+            cart.products[existingProductIndex].quantity+=1;
+            const product= await Product.findById(productId);
+            cart.products[existingProductIndex].total+=product.price;
+        }
+        cart.total= cart.products.reduce((total,product)=>{
+            return total+product.total;
+        },0);
+        await cart.save();
+
+        res.render('cart');
+         } catch (error) {
+           console.log(error.mesage);
+    }
+}
+
+const loadCart= async(req,res)=>{
+      try {
+        const UserHaveCart= await Cart.findOne({user_id:req.session.user_id});
+
+        console.log("UserHaveCart:",UserHaveCart);
+        if(UserHaveCart){
+           let cart= await Cart.findOne({user_id:req.session.user_id})
+           .populate({
+             path:'products.productId',
+             populate:{path:'category', select: 'Discount'}
+           })
+           console.log("cart:",cart);
+          let products=cart.products.map((product)=>{
+            //total amount of all product
+            let total=Number(product.quantity) * Number(product.productId.price);
+
+            console.log("total:",total);
+
+            //calculating category and product offr
+
+            let categoryOfferPercentage= product.productId.category.Discount;
+            console.log("categoryOfferPercentage:",categoryOfferPercentage);
+            let productOfferPercentage=product.productId.productOffer;
+            console.log("productOfferPercentage:",categoryOfferPercentage);
+
+            let categoryDiscountAmount=(total*categoryOfferPercentage)/100;
+            let productDiscountAmount=(total*productOfferPercentage)/100;
+            let finalAmount=total-productDiscountAmount-categoryDiscountAmount;
+            return{
+                _id:product.productId._id.toString(),
+                name:product.productId.name,
+                categoryOffer:product.productId.category.Discount,
+                image:product.productId.image,
+                price:product.productId.price,
+                description:product.productId.description,
+                finalAmount:finalAmount,
+                discountAmount:categoryDiscountAmount+productDiscountAmount,
+                productOffer:product.productId.productOffer,
+                quantity:product.quantity,
+                total:total,
+                user_id:req.session.user_id,
+                totalDiscountPercentage:productOfferPercentage+categoryOfferPercentage
+            }
+          }) ;
+
+          //total value of all product in the cart
+
+          let total=products.reduce(
+            (sum,product)=> sum+Number(product.total),0
+          );
+
+          //calculating total product offer discount amount
+
+          totalProductDiscountAmount=0
+
+            let productDiscounts=cart.products.forEach((item)=>{
+            let quantity=item.quantity;
+            let price=item.productId.price;
+            let productOffer=item.productId.productOffer;
+
+            let discountAmount= (quantity*price*productOffer)/100;
+            totalProductDiscountAmount+=discountAmount;
+
+          })
+
+          //calculating total category offer discount amount
+
+          let totalCategoryDiscountAmount=0
+
+          let categoryDiscounts=cart.products.forEach((item)=>{
+
+          let actualProductAmount=item.productId.price * item.quantity;
+
+            let categoryOffer=item.productId.category.Discount
+
+            let categoryDiscountAmount=(actualProductAmount*categoryOffer)/100;
+
+            totalCategoryDiscountAmount+=categoryDiscountAmount;
+
+          })
+
+          let totalAmount=total-totalProductDiscountAmount-totalCategoryDiscountAmount;
+
+          //get the total count of the products
+          
+          let totalCount=products.length;
+
+          res.render('cart',{
+            products,
+            total,
+            totalCount,
+            subTotal:total,
+            totalAmount
+          });
+
+        }else{
+            res.render('cart',{message:"Your Cart Is Empty"});
+        }
+      } catch (error) {
+        console.log(error.message);
+        
+      }
 }
 
 const userLogout=async(req,res)=>{
@@ -382,7 +535,7 @@ const updateProfile = async (req, res) => {
               { new: true }
               
           );
-          console.log(" hj:",userData);
+         
 
           res.json({userData,
         success:true
@@ -558,5 +711,8 @@ module.exports={
     updateAddress,
     deleteAddress,
     setasDefault,
-    singleProductView
+    singleProductView,
+    addToCart,
+    loadCart
 }
+
