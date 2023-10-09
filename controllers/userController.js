@@ -271,7 +271,8 @@ const addToCart=async(req,res)=>{
                 quantity:1,
                 total,
             })
-            res.render('cart');
+            res.redirect('/shop');
+            
         }else{
             cart.products[existingProductIndex].quantity+=1;
             const product= await Product.findById(productId);
@@ -282,9 +283,9 @@ const addToCart=async(req,res)=>{
         },0);
         await cart.save();
 
-        res.render('cart');
+        res.redirect(`/singleProduct?pid=${productId}`);
          } catch (error) {
-           console.log(error.mesage);
+           console.log(error.message);
     }
 }
 
@@ -292,30 +293,33 @@ const loadCart= async(req,res)=>{
       try {
         const UserHaveCart= await Cart.findOne({user_id:req.session.user_id});
 
-        console.log("UserHaveCart:",UserHaveCart);
+        // console.log("UserHaveCart:",UserHaveCart);
         if(UserHaveCart){
            let cart= await Cart.findOne({user_id:req.session.user_id})
            .populate({
              path:'products.productId',
              populate:{path:'category', select: 'Discount'}
            })
-           console.log("cart:",cart);
+        //    console.log("cart:",cart);
           let products=cart.products.map((product)=>{
             //total amount of all product
             let total=Number(product.quantity) * Number(product.productId.price);
 
-            console.log("total:",total);
+            
 
             //calculating category and product offr
 
             let categoryOfferPercentage= product.productId.category.Discount;
-            console.log("categoryOfferPercentage:",categoryOfferPercentage);
+            // console.log("categoryOfferPercentage:",categoryOfferPercentage);
             let productOfferPercentage=product.productId.productOffer;
-            console.log("productOfferPercentage:",categoryOfferPercentage);
+            // console.log("productOfferPercentage:",categoryOfferPercentage);
 
             let categoryDiscountAmount=(total*categoryOfferPercentage)/100;
+            // console.log("categoryDiscountAmount",categoryDiscountAmount);
             let productDiscountAmount=(total*productOfferPercentage)/100;
+            // console.log("productDiscountAmount",productDiscountAmount);
             let finalAmount=total-productDiscountAmount-categoryDiscountAmount;
+            // console.log("finalAmount:",finalAmount);
             return{
                 _id:product.productId._id.toString(),
                 name:product.productId.name,
@@ -323,7 +327,7 @@ const loadCart= async(req,res)=>{
                 image:product.productId.image,
                 price:product.productId.price,
                 description:product.productId.description,
-                finalAmount:finalAmount,
+                finalAmnt:finalAmount,
                 discountAmount:categoryDiscountAmount+productDiscountAmount,
                 productOffer:product.productId.productOffer,
                 quantity:product.quantity,
@@ -338,6 +342,7 @@ const loadCart= async(req,res)=>{
           let total=products.reduce(
             (sum,product)=> sum+Number(product.total),0
           );
+          
 
           //calculating total product offer discount amount
 
@@ -390,6 +395,136 @@ const loadCart= async(req,res)=>{
         console.log(error.message);
         
       }
+}
+
+const updateQuantity=async(req,res)=>{
+    try {
+        
+        const userId=req.session.user_id;
+        
+        const productId=req.query.productId;
+
+        
+        const newQuantity=req.query.quantity;
+        
+        const cartFind= await Cart.findOne({user_id:userId})
+        .populate({
+           path:'products.productId',
+           populate:{
+           path: 'category'
+           }
+   })
+        
+        // console.log("cartFinddddddd",JSON.stringify(cartFind));
+        const cartItem = cartFind.products.find((product)=>{
+            return product.productId._id.toString()=== productId
+        })
+        
+        
+       
+        cartItem.quantity=newQuantity;
+        
+      
+        
+       await cartFind.save()
+
+//updating the total of the specific product in the cart
+
+            const updatedProduct= cartFind.products.find(product=>product.productId._id.toString()===productId);
+            let updatedProductId=updatedProduct.productId;
+            const updatedProductPrice = await Product.findOne({ _id: updatedProductId }).select('price');
+            const productPrice=updatedProductPrice.price;
+        
+            updatedProduct.total=productPrice * updatedProduct.quantity;
+
+          
+       
+            await cartFind.save();
+
+        // check if the quantity is 0 or less
+           if(updatedProduct.quantity <=0){
+
+       //removing the product from the cart
+            cartFind.products= cartFind.products.filter(product=> !product.productId._id.equals(productId));
+            await cartFind.save();
+            const response={deleteProduct:true}
+            return response
+        }
+
+        //subtotal calculating after discounting offers
+
+           const total= cartFind.products.reduce(
+             (sum,product)=> sum+ Number(product.total),
+             0
+             );
+           console.log("totallll",total);
+        //calculating total productoffer discount amount
+           let totalProductDiscountAmount=0;
+
+            const productDiscounts= cartFind.products.forEach((item)=>{
+            const quantity=item.quantity
+            
+            
+            const findCartItemPrice = cartFind.products.find((product)=>{
+                return product.productId._id.toString()=== productId
+            })
+            
+            const productPrice=findCartItemPrice.productId.price;
+        
+            console.log("productPrice:",productPrice);
+           
+            const productOffer=findCartItemPrice.productId.productOffer;
+            console.log("productOffer:",productOffer);
+            console.log("itemquantity",quantity);
+
+            const discountAmount=(quantity*productPrice*productOffer)/100;
+            console.log("discountAmount",discountAmount);
+            totalProductDiscountAmount = discountAmount;
+        })
+          console.log(" totalProductDiscountAmount", totalProductDiscountAmount);
+        //calcualating total categoryOffer discount amt
+
+        let totalCategoryDiscountAmount=0;
+
+        const  categoryDiscounts= cartFind.products.forEach((item)=>{
+            const quantity=item.quantity;
+            const findCartItemPrice=cartFind.products.find((product)=>{
+                return product.productId._id.toString()===productId
+            });
+           
+            const productPrice=findCartItemPrice.productId.price;
+            console.log("productpricecat:", productPrice);
+            const categoryOffer=findCartItemPrice.productId.category.Discount;
+            console.log("categoryOffer",categoryOffer);
+            console.log("quantttt:",quantity);
+            const categoryDiscountAmount=(quantity*productPrice*categoryOffer)/100;
+            console.log("discountAmountcat:",categoryDiscountAmount);
+            totalCategoryDiscountAmount=categoryDiscountAmount;
+            console.log(" totalCategoryDiscountAmountcat:", totalCategoryDiscountAmount);
+        })  
+        
+       console.log("totalley",total);
+
+       
+       
+        const totalAmount=total-totalProductDiscountAmount-totalCategoryDiscountAmount;
+        console.log("totalAmount",totalAmount);
+
+       
+        //response for frontend
+
+        const response={
+            quantity:updatedProduct.quantity,
+            totalAmount:totalAmount
+        };
+
+           console.log('last',cartFind);
+           res.json(cartFind);
+
+
+    } catch (error) {
+        console.log(error.message);
+    }
 }
 
 const userLogout=async(req,res)=>{
@@ -713,6 +848,7 @@ module.exports={
     setasDefault,
     singleProductView,
     addToCart,
-    loadCart
+    loadCart,
+    updateQuantity
 }
 

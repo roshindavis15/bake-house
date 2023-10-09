@@ -77,6 +77,8 @@ user_route.get('/cart',auth.isLogin,userController.loadCart);
 
 user_route.get('/addtoCart',auth.isLogin,userController.addToCart);
 
+user_route.post('/updateQuantity',auth.isLogin,userController.updateQuantity);
+
 user_route.post('/edit',userController.updateProfile);
 
 user_route.post('/otpverify',userController.otpverify);
