@@ -57,24 +57,31 @@
 							</thead>
 							<tbody>
 								
-								<tr class="table-body-row">
-									<%if(typeof products !=='undefined'){%>
-										<%for(i=0;i<products.length;i++){%>
-									<td class="product-remove"><a href="#"><i class="far fa-window-close"></i></a></td>
+								<%if(typeof products !=='undefined'){%>
+									<%for(i=0;i<products.length;i++){%>
+
+								<tr class="table-body-row" data-product-id="<%=products[i]._id %>">
+									
+											<td class="product-remove"  data-product-id="<%=products[i]._id %>" ><a href="#"><i class="far fa-window-close"></i></a></td>
+											
+											     
 									<td class="product-image"><img src="/frutika-master/uploads/<%=products[i].image%>" alt=""></td>
 									<td class="product-name"><%=products[i].name%></td>
 									<td class="product-price"><%=products[i].price%></td>
-									<td class="product-quantity"><input class="quantity-input" type="number" min="1" data-product-id="<%=products[i]._id %>" value="<%= products[i].quantity %>"></td>
+									<td class="product-quantity"><input class="quantity-input" type="number" min="1" data-product-id="<%=products[i]._id %>" value="<%= products[i].quantity %>"></td>j
 									<td class="product-total"><%=products[i].total%></td>
 									<td class="product-categorydis"><%=products[i].categoryOffer%>%</td>
 									<td class="product-productdis"><%=products[i].productOffer%>%</td>
-									<td class="product-productdistotal"><%=products[i].finalAmnt%></td>
+									<td class="product-productdistotal"id="product-productdistotal"><%=products[i].finalAmnt%></td>
 								</tr>
 								<%}%>
 								<%}%>
 							</tbody>
 						</table>
 					</div>
+
+					<div id="outOfStockMessage" style="color: red;"></div>
+
 					<div class="cart-buttons">
 						<a href="cart.html" class="boxed-btn">Update Cart</a>
 						
@@ -93,22 +100,19 @@
 							</thead>
 							<tbody>
 								<tr class="total-data">
-									<td><strong>Subtotal: </strong></td>
-									<td id="subtotal"><%=total%></td>
-								</tr>
-								<tr class="total-data">
-									<td><strong>Shipping: </strong></td>
-									<td>00</td>
-								</tr>
-								<tr class="total-data">
 									<td><strong>Total: </strong></td>
-									<td><span>&#8377;</span><%=totalAmount%></td>
+									<td id="grandtotal"><%=total%></td>
+								</tr>
+								
+								<tr class="total-data">
+									<td><strong>Subtotal: </strong></td>
+									<td id="subtotal"><span>&#8377;</span><%=totalAmount%></td>
 								</tr>
 							</tbody>
 						</table>
 						<div class="cart-buttons">
 							
-							<a href="checkout.html" class="boxed-btn black">Check Out</a>
+							<a href="/checkout" class="boxed-btn black">Check Out</a>
 						</div>
 					</div>
 
@@ -254,19 +258,32 @@
 			const newQuantity=parseInt(event.target.value);
 
              console.log("sending request");
-			const response= await fetch(`/updateQuantity?productId=${productId}&quantity=${newQuantity}`,{
+			const responseUpdate= await fetch(`/updateQuantity?productId=${productId}&quantity=${newQuantity}`,{
 				method:'POST'
 			});
 			
-			const responseData=await response.json();
+			const responseData=await responseUpdate.json();
 			console.log("produuuuuuuuuuuuuuuuuuu",responseData);
-			if(responseData.products){
-				console.log(responseData.products[0].total);
-				const subtotalElement=document.getElementById('subtotal')
-				console.log("subtotalElement:",subtotalElement);
-				subtotalElement.textContent=`${responseData.products[0].total}`;
-				console.log("responseData:",responseData.products[0].total);
-
+			if(responseData.outOfStock){
+				const outOfStockMessage= document.getElementById('outOfStockMessage');
+				if(outOfStockMessage){
+					outOfStockMessage.textContent="Out Of Stock"
+				}
+			}	
+			if(responseData.grandTotal){
+				console.log("GRAND:",responseData.grandTotal);
+				const grandTotal = document.getElementById('grandtotal');
+				if(grandTotal){
+					grandTotal.textContent=`${responseData.grandTotal}`;
+				}
+				if(responseData.cartTotalAmount){
+					const grandSubtotal=document.getElementById('subtotal');
+					if(grandSubtotal){
+						grandSubtotal.textContent=`${responseData.cartTotalAmount}`
+					}	
+				}
+				
+				
 				if(responseData.deleteProduct){
 					alert("Product Removed From the cart")
 				}
@@ -286,6 +303,31 @@
 		})
       
 			
+	</script>
+	<script>
+		document.querySelectorAll('.product-remove').forEach(anchor=>{
+			anchor.addEventListener('click',async(event)=>{
+				event.preventDefault();
+                console.log('product removing');
+				
+				const proId=anchor.getAttribute('data-product-id');
+				
+				console.log(proId);
+				console.log('sending request');
+				const response=await fetch(`/producutRemovingFromCart?productId=${proId}`,{
+					method:'POST'
+				});
+				const responseData= await response.json();
+				console.log(responseData);
+				if(responseData.productRemovingFromCart){
+					const cartItem = document.querySelector(`tr[data-product-id="${proId}"]`);
+					console.log("cartItem:",cartItem);
+					if(cartItem){
+						cartItem.remove();
+					}
+				}
+			})
+		})
 	</script>
 
 </body>

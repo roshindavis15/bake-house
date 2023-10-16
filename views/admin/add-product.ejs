@@ -126,7 +126,7 @@
             </div>
             <div class="row tm-edit-product-row">
               <div class="col-xl-6 col-lg-6 col-md-12">
-                <form action="/admin/add-product" method="post" enctype="multipart/form-data" class="tm-edit-product-form" id="add-product-form"  onsubmit="checkProductAndSubmit()">
+                <form action="/admin/add-product" method="post" enctype="multipart/form-data" class="tm-edit-product-form" id="add-product-form"  onsubmit="return checkProductAndSubmit(); checkStockValue()">
                   <div class="form-group mb-3">
                     <label
                       for="name"
@@ -286,48 +286,59 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const productAddBtn = document.querySelector('.productAddBtn')
-  productAddBtn.addEventListener('click',checkProductAndsubmit)
+ var productAddBtn = document.querySelector('.productAddBtn');
+productAddBtn.addEventListener('click', checkProductAndsubmit);
 
-  function checkProductAndsubmit(e){
-    e.preventDefault()
-    var productName=document.getElementById('name').value;
+function checkProductAndsubmit(e) {
+    e.preventDefault();
 
-    fetch('/admin/add-product',{
-      method:'POST',
-      body:new FormData(document.getElementById('add-product-form')),
-      
-       })
-       .then(response=>response.json())
-       .then(data=>{
-
-        if(data.success){
-          Swal.fire({
-          icon: 'success',
-          title: 'Product Added',
-          text: 'The product has been added successfully!',
-        })
-        location.reload()
-        return
-        }
-        else{
-          Swal.fire({
-          icon: 'error',
-          title: 'Product Already Exists',
-          text: 'This product already exists. Please check and try again.',
+    var stockInput = document.getElementById('stock');
+    if (stockInput.value < 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Stock Value',
+            text: 'Stock value cannot be negative. Please enter a valid value.',
         });
-        return
+        return; 
+    }
+
+    var productName = document.getElementById('name').value;
+
+    fetch('/admin/add-product', {
+        method: 'POST',
+        body: new FormData(document.getElementById('add-product-form')),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Product Added',
+                text: 'The product has been added successfully!',
+            });
+            location.reload();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Product Already Exists',
+                text: 'This product already exists. Please check and try again.',
+            });
         }
-        if(data.existingProduct){
-          document.getElementById('alert-message').style.display = 'block';
-        }else{
-          document.getElementById('alert-message').style.display = 'none';
-          document.getElementById('add-product-form').submit();
+        if (data.existingProduct) {
+            document.getElementById('alert-message').style.display = 'block';
+        } else {
+            document.getElementById('alert-message').style.display = 'none';
+            document.getElementById('add-product-form').submit();
         }
-       })
-       
-  }
+    })
+    .catch(error => {
+        
+        console.error(error);
+    });
+}
+
 </script>
+
    
   </body>
 </html>

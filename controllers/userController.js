@@ -241,9 +241,10 @@ const singleProductView= async(req,res)=>{
     }
 }
 
+User
 const addToCart=async(req,res)=>{
     try {
-        const productId=req.query.pid;
+        const productId=req.query.productId;
         console.log("productId:",productId);
         
         let cart= await Cart.findOne({user_id:req.session.user_id});
@@ -264,30 +265,57 @@ const addToCart=async(req,res)=>{
         })
         console.log("existingProductIndex:",existingProductIndex);
         if(existingProductIndex=== -1){
-            const product= await Product.findById(productId);
-            const total=product.price;
-            cart.products.push({
-                productId:productId,
-                quantity:1,
-                total,
-            })
-            res.redirect('/shop');
+            
+            console.log("productIdddd",productId);
+             var product= await Product.findById(productId);
+            
+            
+            if(product.stock > 0){
+                const total=product.price;
+                cart.products.push({
+                    productId:productId,
+                    quantity:1,
+                    total,
+                });
+                console.log("carteyyyy:",cart);
+                await cart.save();
+                product.stock-=1; //decrease the stock of the product
+                await product.save();
+                res.json({stock:0,addToCart:true});
+                res.redirect('/shop');
+            }else{
+                res.json({stock:0,addToCart:false});
+            }
+            
+            
             
         }else{
-            cart.products[existingProductIndex].quantity+=1;
-            const product= await Product.findById(productId);
-            cart.products[existingProductIndex].total+=product.price;
+            
+            var product= await Product.findById(productId);
+
+            if(product.stock > 0){
+                cart.products[existingProductIndex].quantity+=1;
+                cart.products[existingProductIndex].total+=product.price;
+                product.stock -=1;
+                await product.save();
+            }else{
+                res.json({stock:product.stock,addToCart:false})
+            }
+            
         }
         cart.total= cart.products.reduce((total,product)=>{
             return total+product.total;
         },0);
         await cart.save();
+        res.json({stock:product.stock,addToCart:true});
 
-        res.redirect(`/singleProduct?pid=${productId}`);
+        
          } catch (error) {
+
            console.log(error.message);
     }
 }
+
 
 const loadCart= async(req,res)=>{
       try {
@@ -415,18 +443,35 @@ const updateQuantity=async(req,res)=>{
            }
    })
         
-        // console.log("cartFinddddddd",JSON.stringify(cartFind));
+        // console.log("cartFinddddddd",JSON.stringify(cartFind))
         const cartItem = cartFind.products.find((product)=>{
             return product.productId._id.toString()=== productId
         })
         
         
-       
-        cartItem.quantity=newQuantity;
+        var product= await Product.findById(productId);
+             let responseUpdate;
+            if(newQuantity>product.stock){
+                const response= {outOfStock:true};
+               return res.json(response);
+                
+            }else{
+            const stockDifference=newQuantity-cartItem.quantity;
+
+            cartItem.quantity=newQuantity;
+            if(stockDifference > 0){
+                
+                product.stock -= stockDifference
+                
+            }else if(stockDifference < 0){
+                
+                product.stock +=stockDifference
+                
+           
+    }
         
-      
-        
-       await cartFind.save()
+        await product.save()
+        await cartFind.save()
 
 //updating the total of the specific product in the cart
 
@@ -436,7 +481,8 @@ const updateQuantity=async(req,res)=>{
             const productPrice=updatedProductPrice.price;
         
             updatedProduct.total=productPrice * updatedProduct.quantity;
-
+            
+            
           
        
             await cartFind.save();
@@ -451,13 +497,13 @@ const updateQuantity=async(req,res)=>{
             return response
         }
 
-        //subtotal calculating after discounting offers
+        //grandtotal calculating 
 
-           const total= cartFind.products.reduce(
+           const grandTotal= cartFind.products.reduce(
              (sum,product)=> sum+ Number(product.total),
              0
              );
-           console.log("totallll",total);
+        //    console.log("grandtotal",grandTotal);
         //calculating total productoffer discount amount
            let totalProductDiscountAmount=0;
 
@@ -471,17 +517,17 @@ const updateQuantity=async(req,res)=>{
             
             const productPrice=findCartItemPrice.productId.price;
         
-            console.log("productPrice:",productPrice);
+            // console.log("productPrice:",productPrice);
            
             const productOffer=findCartItemPrice.productId.productOffer;
-            console.log("productOffer:",productOffer);
-            console.log("itemquantity",quantity);
+            // console.log("productOffer:",productOffer);
+            // console.log("itemquantity",quantity);
 
             const discountAmount=(quantity*productPrice*productOffer)/100;
-            console.log("discountAmount",discountAmount);
+            // console.log("discountAmount",discountAmount);
             totalProductDiscountAmount = discountAmount;
         })
-          console.log(" totalProductDiscountAmount", totalProductDiscountAmount);
+        //   console.log(" totalProductDiscountAmount", totalProductDiscountAmount);
         //calcualating total categoryOffer discount amt
 
         let totalCategoryDiscountAmount=0;
@@ -493,35 +539,85 @@ const updateQuantity=async(req,res)=>{
             });
            
             const productPrice=findCartItemPrice.productId.price;
-            console.log("productpricecat:", productPrice);
+            
             const categoryOffer=findCartItemPrice.productId.category.Discount;
-            console.log("categoryOffer",categoryOffer);
-            console.log("quantttt:",quantity);
+            
+            
             const categoryDiscountAmount=(quantity*productPrice*categoryOffer)/100;
-            console.log("discountAmountcat:",categoryDiscountAmount);
+            
             totalCategoryDiscountAmount=categoryDiscountAmount;
-            console.log(" totalCategoryDiscountAmountcat:", totalCategoryDiscountAmount);
+           
         })  
+        const eachProdutSubtotal=cartFind.products.map(product=>product.total);
+        const grandSubtotal=eachProdutSubtotal.reduce((acc,currentTotal)=>acc+currentTotal)
+        console.log("grandSubtotal",grandSubtotal);
         
-       console.log("totalley",total);
+        const totalAmount=updatedProduct.total-totalProductDiscountAmount-totalCategoryDiscountAmount;
+        
+        let cartTotalAmount = 0;
 
-       
-       
-        const totalAmount=total-totalProductDiscountAmount-totalCategoryDiscountAmount;
-        console.log("totalAmount",totalAmount);
+// Iterate through each product in the cart
+cartFind.products.forEach(product => {
+   const price = product.productId.price;
+   const categoryOffer = product.productId.category.Discount;
+   const productOffer = product.productId.productOffer;
 
-       
+   // Calculate the reduced price for this product
+   const reducedPrice = price - (price * (categoryOffer / 100)) - (price * (productOffer / 100));
+
+   // Add the reduced price multiplied by the quantity to the total amount
+   cartTotalAmount += (reducedPrice * product.quantity);
+});
+       console.log("total cart amount:",cartTotalAmount);
         //response for frontend
 
-        const response={
+         responseUpdate={
             quantity:updatedProduct.quantity,
-            totalAmount:totalAmount
+            totalAmount:totalAmount,
+            grandTotal:grandTotal,
+            grandSubTotal:grandSubtotal,
+            cartTotalAmount:cartTotalAmount,
+            
+            
+        }    
         };
 
-           console.log('last',cartFind);
-           res.json(cartFind);
+           console.log("response:",responseUpdate);
+           res.json(responseUpdate);
+    
 
+    } catch (error) {
+        console.log(error.message);
+    }
+}
 
+    const producutRemovingFromCart=async(req,res)=>{
+        try {
+            const userId=req.session.user_id;
+            console.log(userId);
+            const productId=req.query.productId;
+            console.log(productId);
+            //find the cart with specific userId and productId
+
+            const cart=await Cart.findOneAndUpdate(
+                {user_id:userId},
+                {$pull:{products:{productId:productId}}},
+                {new:true}
+            );
+            if(cart){
+                
+                //product removed from the cart
+                const response={productRemovingFromCart:true};
+                return res.json(response)   ;
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+}
+
+const checkoutLoad= async(req,res)=>{
+    try {
+        res.render('checkout')
     } catch (error) {
         console.log(error.message);
     }
@@ -673,7 +769,7 @@ const updateProfile = async (req, res) => {
          
 
           res.json({userData,
-        success:true
+          success:true
     })
 
          
@@ -849,6 +945,8 @@ module.exports={
     singleProductView,
     addToCart,
     loadCart,
-    updateQuantity
+    updateQuantity,
+    producutRemovingFromCart,
+    checkoutLoad
 }
 

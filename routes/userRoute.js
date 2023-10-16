@@ -75,9 +75,13 @@ user_route.get('/singleProduct',auth.isLogin,userController.singleProductView);
 
 user_route.get('/cart',auth.isLogin,userController.loadCart);
 
-user_route.get('/addtoCart',auth.isLogin,userController.addToCart);
+user_route.post('/addtoCart',auth.isLogin,userController.addToCart);
 
 user_route.post('/updateQuantity',auth.isLogin,userController.updateQuantity);
+
+user_route.post('/producutRemovingFromCart',auth.isLogin,userController.producutRemovingFromCart);
+
+user_route.get('/checkout',auth.isLogin,userController.checkoutLoad)
 
 user_route.post('/edit',userController.updateProfile);
 

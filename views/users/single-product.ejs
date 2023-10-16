@@ -63,7 +63,9 @@
 							<form action="index.html">
 								<input type="number" placeholder="0">
 							</form>
-							<a href="/addtoCart?pid=<%=product._id %>" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
+							<a href="/addtoCart?pid=<%=product._id %>" class="cart-btn" data-productid="<%=product._id %>" id="addToCartBtn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
+							
+							
 							<%if(typeof category !='undefined'){%>
 							<p><strong>Category: </strong><%=category.Name%></p>
 							<%}%>
@@ -246,6 +248,44 @@
 	<script src="/frutika-master/assets/js/sticker.js"></script>
 	<!-- main js -->
 	<script src="/frutika-master/assets/js/main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+	<script>
+document.addEventListener('DOMContentLoaded',function(){
+	const addToCartButton=document.querySelectorAll('.cart-btn');
+	addToCartButton.forEach(function(addToCartButton){
+		addToCartButton.addEventListener('click',async function(event){
+			event.preventDefault();
+			const productId=this.getAttribute('data-productid')
+			console.log("productId:",productId);
+			const response=await fetch(`/addtoCart?productId=${productId}`,{
+				method:'POST'
+			});
+			const productData= await response.json();
+			if(productData.stock<=0){
+           Swal.fire({
+			icon:'error',
+			title:'Out Of Stock',
+			text:'Sorry, this product is currently out of stock. Please check back later or choose a different product.',
+		   })
+		}
+			
+			if(productData.addToCart){
+				Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart',
+                        text: 'The product has been added to your cart.',
+                    });
+			}
+		
+		})
+	})
+
+	
+})
+
+
+	</script>
 
 </body>
 </html>
