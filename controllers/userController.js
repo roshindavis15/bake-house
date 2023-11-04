@@ -1,14 +1,14 @@
 const mongoose = require('mongoose')
-const User=require('../models/userModel');
+let User=require('../models/userModel');
 const bcrypt= require('bcrypt');
-
 const userHelper = require('../helpers/userHelpers')
+const cartHelper= require('../helpers/cartHelpers');
+const coupenHelper=require('../helpers/coupenHelpers');
 const Product=require("../models/productsModel");
 const Category=require('../models/categoryModel');
 const Address=require('../models/addressModel');
 const Cart= require('../models/cartModel');
-const nodemailer=require('nodemailer')
-
+const nodemailer=require('nodemailer');
 const config=require("../config/config");
 const randomstring= require('randomstring')
 const otpGenerator= require('otp-generator');
@@ -28,12 +28,9 @@ const securedPassword= async(password)=>{
 
 }
 
-
 //for reset password send mail
 const sendResetPasswordMail=async(name,email,token)=>{
     try {
-       
-     
        
        const transporter= nodemailer.createTransport({
             host:'smtp.ethereal.email',
@@ -68,6 +65,8 @@ const sendResetPasswordMail=async(name,email,token)=>{
     }
 }
 
+
+
 const loadRegister=async(req,res)=>{
     try {
         res.render('signup')
@@ -95,6 +94,8 @@ const insertUser = async (req, res) => {
         console.log(error.message);
     }
 }
+
+
 const otpverify= async(req,res)=>{
     try {
         let userOtp= req.body.otp;
@@ -118,11 +119,6 @@ const otpverify= async(req,res)=>{
 }
 
 
-
-
-
-
-
 const loadLogin = async (req, res) => {
     try {
         
@@ -131,7 +127,6 @@ const loadLogin = async (req, res) => {
         console.log(error.message);
     }
 }
-
 
 
 const homeLoad=async(req,res)=>{
@@ -145,9 +140,6 @@ const homeLoad=async(req,res)=>{
 const verifyMail = async (req, res) => {
     try {
         const user_id = req.query.id; 
-        console.log(user_id);
-       
-        
         
         const updateInfo = await User.updateOne({ _id: user_id }, { $set: { is_varified: 1 } });
 
@@ -158,18 +150,15 @@ const verifyMail = async (req, res) => {
     }
 }
 
+
 const verifyLogin = async (req, res) => {
     try {
         const email = req.body.email;
         const password = req.body.password;
-        
-
         const userData = await User.findOne({ email: email });
-        
         
       if(userData){
        const passwordMatch=await bcrypt.compare(password,userData.password);
-       
        
        if(passwordMatch){
         if(userData.is_varified===0){
@@ -178,7 +167,6 @@ const verifyLogin = async (req, res) => {
         }
         else{
             req.session.user_id=userData._id;
-            
             
           res.redirect('home');   
         }
@@ -203,426 +191,150 @@ const loadHome = async (req, res) => {
     try {
         const userData = await User.findById({ _id: req.session.user_id });
         
-        
         res.render('home', { user: userData});
         
     } catch (error) {
         console.log(error.message);
     }
 }
+
+
 const shopLoad=async(req,res) =>{
     try {
         const productData= await Product.find({unlist:false});
         
         const categoryData= await Category.find({IsActive:false});
-    
-        
 
         res.render('shop',{product:productData,category:categoryData,user:req.session.user_id});
     } catch (error) {
         console.log(error.message);
     }
 }
-const singleProductView= async(req,res)=>{
+
+
+const singleProductView = async (req, res) => {
     try {
-        const productId=req.query.pid;
-        const singleProduct= await Product.findById(productId);
-        const categoryIdOfProduct= await Category.findById(singleProduct.category);
-        
-        const categoryOfProduct= await Category.findById(categoryIdOfProduct);
-        
-        if(singleProduct){
-            res.render('single-product',{product:singleProduct,category:categoryOfProduct,user:req.session.user_id});
+        const productId = req.query.pid;
+
+        const singleProduct = await userHelper.getSingleProduct(productId);
+
+        if (!singleProduct) {
+            
+            return res.status(404).send("Product not found");
         }
-        
-        
+
+        const categoryOfProduct = await userHelper.getCategoryById(singleProduct.category);
+
+           res.render('single-product',{product:singleProduct,category:categoryOfProduct,user:req.session.user_id});
     } catch (error) {
         console.log(error.message);
+        
+        res.status(500).send("Internal Server Error");
     }
 }
 
-User
-const addToCart=async(req,res)=>{
+
+const addToCart = async (req, res) => {
     try {
-        const productId=req.query.productId;
-        console.log("productId:",productId);
-        
-        let cart= await Cart.findOne({user_id:req.session.user_id});
-        console.log("existcart:",cart);
+        const productId = req.query.productId;
 
-               if(!cart){
-                    let newCart=new Cart({user_id:req.session.user_id,products:[]});
-                    await newCart.save();
-            
-                    cart=newCart;
-                   
-                  }
-                  console.log("newCart:",cart);
+        const result = await cartHelper.addToCart(req.session.user_id, productId);
 
-        const existingProductIndex=cart.products.findIndex((product)=>{
-            return product.productId.toString()===productId;
-            
-        })
-        console.log("existingProductIndex:",existingProductIndex);
-        if(existingProductIndex=== -1){
-            
-            console.log("productIdddd",productId);
-             var product= await Product.findById(productId);
-            
-            
-            if(product.stock > 0){
-                const total=product.price;
-                cart.products.push({
-                    productId:productId,
-                    quantity:1,
-                    total,
-                });
-                console.log("carteyyyy:",cart);
-                await cart.save();
-                product.stock-=1; //decrease the stock of the product
-                await product.save();
-                res.json({stock:0,addToCart:true});
-                res.redirect('/shop');
-            }else{
-                res.json({stock:0,addToCart:false});
-            }
-            
-            
-            
-        }else{
-            
-            var product= await Product.findById(productId);
-
-            if(product.stock > 0){
-                cart.products[existingProductIndex].quantity+=1;
-                cart.products[existingProductIndex].total+=product.price;
-                product.stock -=1;
-                await product.save();
-            }else{
-                res.json({stock:product.stock,addToCart:false})
-            }
-            
+        if (result.addToCart) {
+            res.json({ stock: result.stock, addToCart: true });
+        } else {
+            res.json({ stock: result.stock, addToCart: false });
         }
-        cart.total= cart.products.reduce((total,product)=>{
-            return total+product.total;
-        },0);
-        await cart.save();
-        res.json({stock:product.stock,addToCart:true});
-
-        
-         } catch (error) {
-
-           console.log(error.message);
-    }
-}
-
-
-const loadCart= async(req,res)=>{
-      try {
-        const UserHaveCart= await Cart.findOne({user_id:req.session.user_id});
-
-        // console.log("UserHaveCart:",UserHaveCart);
-        if(UserHaveCart){
-           let cart= await Cart.findOne({user_id:req.session.user_id})
-           .populate({
-             path:'products.productId',
-             populate:{path:'category', select: 'Discount'}
-           })
-        //    console.log("cart:",cart);
-          let products=cart.products.map((product)=>{
-            //total amount of all product
-            let total=Number(product.quantity) * Number(product.productId.price);
-
-            
-
-            //calculating category and product offr
-
-            let categoryOfferPercentage= product.productId.category.Discount;
-            // console.log("categoryOfferPercentage:",categoryOfferPercentage);
-            let productOfferPercentage=product.productId.productOffer;
-            // console.log("productOfferPercentage:",categoryOfferPercentage);
-
-            let categoryDiscountAmount=(total*categoryOfferPercentage)/100;
-            // console.log("categoryDiscountAmount",categoryDiscountAmount);
-            let productDiscountAmount=(total*productOfferPercentage)/100;
-            // console.log("productDiscountAmount",productDiscountAmount);
-            let finalAmount=total-productDiscountAmount-categoryDiscountAmount;
-            // console.log("finalAmount:",finalAmount);
-            return{
-                _id:product.productId._id.toString(),
-                name:product.productId.name,
-                categoryOffer:product.productId.category.Discount,
-                image:product.productId.image,
-                price:product.productId.price,
-                description:product.productId.description,
-                finalAmnt:finalAmount,
-                discountAmount:categoryDiscountAmount+productDiscountAmount,
-                productOffer:product.productId.productOffer,
-                quantity:product.quantity,
-                total:total,
-                user_id:req.session.user_id,
-                totalDiscountPercentage:productOfferPercentage+categoryOfferPercentage
-            }
-          }) ;
-
-          //total value of all product in the cart
-
-          let total=products.reduce(
-            (sum,product)=> sum+Number(product.total),0
-          );
-          
-
-          //calculating total product offer discount amount
-
-          totalProductDiscountAmount=0
-
-            let productDiscounts=cart.products.forEach((item)=>{
-            let quantity=item.quantity;
-            let price=item.productId.price;
-            let productOffer=item.productId.productOffer;
-
-            let discountAmount= (quantity*price*productOffer)/100;
-            totalProductDiscountAmount+=discountAmount;
-
-          })
-
-          //calculating total category offer discount amount
-
-          let totalCategoryDiscountAmount=0
-
-          let categoryDiscounts=cart.products.forEach((item)=>{
-
-          let actualProductAmount=item.productId.price * item.quantity;
-
-            let categoryOffer=item.productId.category.Discount
-
-            let categoryDiscountAmount=(actualProductAmount*categoryOffer)/100;
-
-            totalCategoryDiscountAmount+=categoryDiscountAmount;
-
-          })
-
-          let totalAmount=total-totalProductDiscountAmount-totalCategoryDiscountAmount;
-
-          //get the total count of the products
-          
-          let totalCount=products.length;
-
-          res.render('cart',{
-            products,
-            total,
-            totalCount,
-            subTotal:total,
-            totalAmount
-          });
-
-        }else{
-            res.render('cart',{message:"Your Cart Is Empty"});
-        }
-      } catch (error) {
+    } catch (error) {
         console.log(error.message);
-        
-      }
+        res.status(500).send("Internal Server Error");
+    }
 }
 
-const updateQuantity=async(req,res)=>{
+
+    const loadCart = async (req, res) => {
     try {
-        
-        const userId=req.session.user_id;
-        
-        const productId=req.query.productId;
+        const result = await cartHelper.loadCart(req.session.user_id);
+        const activeCoupens= await coupenHelper.getActiveCoupens();
+        console.log("activeCoupens:",activeCoupens);
 
-        
-        const newQuantity=req.query.quantity;
-        
-        const cartFind= await Cart.findOne({user_id:userId})
-        .populate({
-           path:'products.productId',
-           populate:{
-           path: 'category'
-           }
-   })
-        
-        // console.log("cartFinddddddd",JSON.stringify(cartFind))
-        const cartItem = cartFind.products.find((product)=>{
-            return product.productId._id.toString()=== productId
-        })
-        
-        
-        var product= await Product.findById(productId);
-             let responseUpdate;
-            if(newQuantity>product.stock){
-                const response= {outOfStock:true};
-               return res.json(response);
-                
-            }else{
-            const stockDifference=newQuantity-cartItem.quantity;
-
-            cartItem.quantity=newQuantity;
-            if(stockDifference > 0){
-                
-                product.stock -= stockDifference
-                
-            }else if(stockDifference < 0){
-                
-                product.stock +=stockDifference
-                
-           
-    }
-        
-        await product.save()
-        await cartFind.save()
-
-//updating the total of the specific product in the cart
-
-            const updatedProduct= cartFind.products.find(product=>product.productId._id.toString()===productId);
-            let updatedProductId=updatedProduct.productId;
-            const updatedProductPrice = await Product.findOne({ _id: updatedProductId }).select('price');
-            const productPrice=updatedProductPrice.price;
-        
-            updatedProduct.total=productPrice * updatedProduct.quantity;
-            
-            
-          
-       
-            await cartFind.save();
-
-        // check if the quantity is 0 or less
-           if(updatedProduct.quantity <=0){
-
-       //removing the product from the cart
-            cartFind.products= cartFind.products.filter(product=> !product.productId._id.equals(productId));
-            await cartFind.save();
-            const response={deleteProduct:true}
-            return response
-        }
-
-        //grandtotal calculating 
-
-           const grandTotal= cartFind.products.reduce(
-             (sum,product)=> sum+ Number(product.total),
-             0
-             );
-        //    console.log("grandtotal",grandTotal);
-        //calculating total productoffer discount amount
-           let totalProductDiscountAmount=0;
-
-            const productDiscounts= cartFind.products.forEach((item)=>{
-            const quantity=item.quantity
-            
-            
-            const findCartItemPrice = cartFind.products.find((product)=>{
-                return product.productId._id.toString()=== productId
-            })
-            
-            const productPrice=findCartItemPrice.productId.price;
-        
-            // console.log("productPrice:",productPrice);
-           
-            const productOffer=findCartItemPrice.productId.productOffer;
-            // console.log("productOffer:",productOffer);
-            // console.log("itemquantity",quantity);
-
-            const discountAmount=(quantity*productPrice*productOffer)/100;
-            // console.log("discountAmount",discountAmount);
-            totalProductDiscountAmount = discountAmount;
-        })
-        //   console.log(" totalProductDiscountAmount", totalProductDiscountAmount);
-        //calcualating total categoryOffer discount amt
-
-        let totalCategoryDiscountAmount=0;
-
-        const  categoryDiscounts= cartFind.products.forEach((item)=>{
-            const quantity=item.quantity;
-            const findCartItemPrice=cartFind.products.find((product)=>{
-                return product.productId._id.toString()===productId
+        if (result.message) {
+            res.render('cart', { message: result.message });
+        } else {
+            res.render('cart', {
+                products: result.products,
+                total: result.total,
+                totalCount: result.totalCount,
+                subTotal: result.subTotal,
+                totalAmount: result.totalAmount,
+                user: req.session.user_id,
+                activeCoupens:activeCoupens
             });
-           
-            const productPrice=findCartItemPrice.productId.price;
-            
-            const categoryOffer=findCartItemPrice.productId.category.Discount;
-            
-            
-            const categoryDiscountAmount=(quantity*productPrice*categoryOffer)/100;
-            
-            totalCategoryDiscountAmount=categoryDiscountAmount;
-           
-        })  
-        const eachProdutSubtotal=cartFind.products.map(product=>product.total);
-        const grandSubtotal=eachProdutSubtotal.reduce((acc,currentTotal)=>acc+currentTotal)
-        console.log("grandSubtotal",grandSubtotal);
-        
-        const totalAmount=updatedProduct.total-totalProductDiscountAmount-totalCategoryDiscountAmount;
-        
-        let cartTotalAmount = 0;
-
-// Iterate through each product in the cart
-cartFind.products.forEach(product => {
-   const price = product.productId.price;
-   const categoryOffer = product.productId.category.Discount;
-   const productOffer = product.productId.productOffer;
-
-   // Calculate the reduced price for this product
-   const reducedPrice = price - (price * (categoryOffer / 100)) - (price * (productOffer / 100));
-
-   // Add the reduced price multiplied by the quantity to the total amount
-   cartTotalAmount += (reducedPrice * product.quantity);
-});
-       console.log("total cart amount:",cartTotalAmount);
-        //response for frontend
-
-         responseUpdate={
-            quantity:updatedProduct.quantity,
-            totalAmount:totalAmount,
-            grandTotal:grandTotal,
-            grandSubTotal:grandSubtotal,
-            cartTotalAmount:cartTotalAmount,
-            
-            
-        }    
-        };
-
-           console.log("response:",responseUpdate);
-           res.json(responseUpdate);
-    
-
-    } catch (error) {
-        console.log(error.message);
-    }
-}
-
-    const producutRemovingFromCart=async(req,res)=>{
-        try {
-            const userId=req.session.user_id;
-            console.log(userId);
-            const productId=req.query.productId;
-            console.log(productId);
-            //find the cart with specific userId and productId
-
-            const cart=await Cart.findOneAndUpdate(
-                {user_id:userId},
-                {$pull:{products:{productId:productId}}},
-                {new:true}
-            );
-            if(cart){
-                
-                //product removed from the cart
-                const response={productRemovingFromCart:true};
-                return res.json(response)   ;
-            }
-        } catch (error) {
-            console.log(error.message);
         }
-}
-
-const checkoutLoad= async(req,res)=>{
-    try {
-        res.render('checkout')
     } catch (error) {
         console.log(error.message);
     }
 }
 
+
+const updateQuantity = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const productId = req.query.productId;
+        const newQuantity = req.query.quantity;
+
+        const result = await cartHelper.updateQuantity(userId, productId, newQuantity);
+
+        res.json(result);
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const removeProductFromCart = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const productId = req.query.productId;
+
+        const result = await cartHelper.removeProductFromCart(userId, productId);
+
+        res.json(result);
+    } catch (error) {
+        console.log(error.message);
+    }
+};
+
+
+
+
+const checkoutLoad = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+
+        const checkoutData = await userHelper.getCheckoutData(userId);
+        console.log("checkOutData:",checkoutData);
+
+        res.render('checkout', checkoutData);
+
+    } catch (error) {
+        console.log(error.message);
+    }
+};
+
+
+const addAddressInCheckout=async(req,res)=>{
+    try {
+        const userId=req.session.user_id;
+        userHelper.userAddress(req.body,res,userId).then((data)=>{
+           res.redirect('/checkout')
+        })
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+
+   
 const userLogout=async(req,res)=>{
     try {
         
@@ -739,8 +451,9 @@ const editLoad = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     
-      const userId = req.body.user_id;
-      console.log(req.body);
+      const userId = req.session.user_id;
+      
+      console.log("req.body:",req.body);
       
       let updateFields = {
           name: req.body.name,
@@ -807,7 +520,7 @@ const submitAddress= async(req,res)=>{
     try {
       const userId= req.session.user_id;
         userHelper.userAddress(req.body,res,userId).then((data)=>{
-            res.redirect('http://localhost:3000/addressManagement');
+            res.redirect('http://localhost:5000/addressManagement');
         });
     } catch (error) {
         console.log(error.message);
@@ -894,27 +607,41 @@ const deleteAddress= async(req,res)=>{
     }
 }
 
-const setasDefault= async(req,res)=>{
-    try{
-        const addressId=req.query.id;
+const setasDefault = async (req, res) => {
+    try {
+        const addressId = req.query.id;
         const sessionUserId = req.session.user_id;
-        const currentDefaultAddress= await Address.findOne({user_id:sessionUserId,'address.0.isDefault': true});
-        if(currentDefaultAddress){
+
+        // Find the current default address and update it
+        const currentDefaultAddress = await Address.findOne({ user_id: sessionUserId, 'address.0.isDefault': true });
+        if (currentDefaultAddress) {
             currentDefaultAddress.address[0].isDefault = false;
             await currentDefaultAddress.save();
         }
-        console.log("currentDefaultAddress:",currentDefaultAddress);
-        const addressDataToUpdate= await Address.findOneAndUpdate({_id:addressId},{$set:{"address.0.isDefault": true}});
-        
-        
 
-        return res.redirect('/addressManagement') 
+        console.log("currentDefaultAddress:", currentDefaultAddress);
 
+        // Find and update the new default address
+        const addressDataToUpdate = await Address.findOneAndUpdate(
+            { _id: addressId },
+            { $set: { "address.0.isDefault": true } }
+        );
 
-} catch (error){
-    console.log(error.message);
+        // Save the updated address if necessary, depending on your schema
+        await addressDataToUpdate.save();
+
+        if (req.query.source === 'checkout') {
+            return res.json({ message: "Address set as Default Successfully" });
+        } else {
+            return res.redirect('/addressManagement');
+        }
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ error: error.message }); // Properly handle errors with a status code
+    }
 }
-}
+    
+
     
 module.exports={
     loadRegister,
@@ -946,7 +673,10 @@ module.exports={
     addToCart,
     loadCart,
     updateQuantity,
-    producutRemovingFromCart,
-    checkoutLoad
+    removeProductFromCart,
+    checkoutLoad,
+    addAddressInCheckout,
+
+    
 }
 

@@ -1,116 +1,114 @@
+<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+            <style>
+                /* Set the background color to black for the entire body */
+                body {
+                    background-color: #000;
+                    color: #fff; /* Change text color to white */
+                }
 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-        <style>
-            /* Set the background color to black for the entire body */
-            body {
-                background-color: #000;
-                color: #fff; /* Change text color to white */
-            }
+                /* Custom styles for address cards */
+                .address-card {
+                    border: 1px solid #333; /* Darken the border color */
+                    border-radius: 5px;
+                    padding: 20px;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    position:relative;
+                }
 
-            /* Custom styles for address cards */
-            .address-card {
-                border: 1px solid #333; /* Darken the border color */
-                border-radius: 5px;
-                padding: 20px;
-                margin: 20px 0;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                position:relative;
-            }
+                .address-card h4 {
+                    margin-top: 0;
+                }
 
-            .address-card h4 {
-                margin-top: 0;
-            }
+                .address-card p {
+                    margin-bottom: 5px;
+                }
 
-            .address-card p {
-                margin-bottom: 5px;
-            }
+                .address-card .edit-button {
+                    margin-top: 10px;
+                }
 
-            .address-card .edit-button {
-                margin-top: 10px;
-            }
+                .address-card .edit-button a {
+                    text-decoration: none;
+                    color: #007bff;
+                }
 
-            .address-card .edit-button a {
-                text-decoration: none;
-                color: #007bff;
-            }
-
-            /* Custom styles for the "Add Address" button */
-            .add-address-button {
-                margin-top: 20px;
-            }
-            .default-badge {
-                   position: absolute;
-                   top: 10px;
-                   right: 10px;
-                   background-color: #007bff;
-                   color: #fff;
-                   padding: 5px 10px;
-                   border-radius: 5px;
-                   font-size: 12px;
-                   font-weight: bold;
-                  }
-         
-
-        </style>
-    </head>
-    <body>
-        <!-- Address Card Template -->
-        <div class="container mt-5">
-            <% if ( addressData  && Array.isArray(addressData) && addressData.length > 0) { %>
-            <div class="row">
+                /* Custom styles for the "Add Address" button */
+                .add-address-button {
+                    margin-top: 20px;
+                }
+                .default-badge {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background-color: #007bff;
+                    color: #fff;
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    }
             
-                <% for (let i = 0; i < addressData.length; i++) { %>
-                <div class="col-md-4">
-                    <div class="address-card">
-                        <h4>Shipping Address</h4>
-                        <% if(addressData[i].address[0].isDefault){ %>
-                            <span class="default-badge">Default</span>
-                   <% } %>
-                        <p>Name: <%= addressData[i].address[0].name %></p>
-                        <p>Mobile: <%= addressData[i].address[0].mobile %> </p>
-                        <p>Home Address: <%= addressData[i].address[0].homeAddress %></p>
-                        <p>Place: <%= addressData[i].address[0].place %></p>
-                        <p>Pin Code: <%= addressData[i].address[0].pincode %> %></p>
-                        <div class="edit-button">
-                            <a class="edit-link" href="/editAddress?id=<%= addressData[i]._id.toString() %>">Edit</a>
-                            
-                        </div>
-                        <div class="edit-button">
-                            <a class="edit-link" href="/deleteAddress?id=<%= addressData[i]._id.toString() %>">Delete</a>
-                            <% if(addressData[i].address[0].isDefault== false){ %>
-                        </div class="set-default-button">
-                        <a href="/setasDefault?id=<%= addressData[i]._id.toString() %>"class="btn btn-primary">Set as Default</a>
-                        <div>
-                            <% } %>  
+
+            </style>
+        </head>
+        <body>
+            <!-- Address Card Template -->
+            <div class="container mt-5">
+                <% if ( addressData  && Array.isArray(addressData) && addressData.length > 0) { %>
+                <div class="row">
+                
+                    <% for (let i = 0; i < addressData.length; i++) { %>
+                    <div class="col-md-4">
+                        <div class="address-card">
+                            <h4>Shipping Address</h4>
+                            <% if(addressData[i].address[0].isDefault){ %>
+                                <span class="default-badge">Default</span>
+                    <% } %>
+                            <p>Name: <%= addressData[i].address[0].name %></p>
+                            <p>Mobile: <%= addressData[i].address[0].mobile %> </p>
+                            <p>Home Address: <%= addressData[i].address[0].homeAddress %></p>
+                            <p>Place: <%= addressData[i].address[0].place %></p>
+                            <p>Pin Code: <%= addressData[i].address[0].pincode %> %></p>
+                            <div class="edit-button">
+                                <a class="edit-link" href="/editAddress?id=<%= addressData[i]._id.toString() %>">Edit</a>
+                                
+                            </div>
+                            <div class="edit-button">
+                                <a class="edit-link" href="/deleteAddress?id=<%= addressData[i]._id.toString() %>">Delete</a>
+                                <% if(addressData[i].address[0].isDefault== false){ %>
+                            </div class="set-default-button">
+                            <a href="/setasDefault?id=<%= addressData[i]._id.toString() %>"class="btn btn-primary">Set as Default</a>
+                            <div>
+                                <% } %>  
+                            </div>
                         </div>
                     </div>
+                    <% } %>
                 </div>
+                <% } else { %>
+                <h2>No addresses added</h2>
                 <% } %>
+                <!-- You can add more address cards here with different data -->
             </div>
-            <% } else { %>
-            <h2>No addresses added</h2>
-            <% } %>
-            <!-- You can add more address cards here with different data -->
-        </div>
 
-        <!-- Add Address Button -->
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <a href="/addAddress" class="btn btn-success add-address-button">Add Address</a>
+            <!-- Add Address Button -->
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="/addAddress" class="btn btn-success add-address-button">Add Address</a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bootstrap JavaScript (you may need to add this if not already included in your project) -->
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    </body>
-    </html>
-   
+            <!-- Bootstrap JavaScript (you may need to add this if not already included in your project) -->
+            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        </body>
+        </html>

@@ -1,4 +1,4 @@
-const User=require("../models/userModel");
+let User=require("../models/userModel");
 const Product=require("../models/productsModel");
 const Category= require("../models/categoryModel");
 const Admin = require('../models/adminModel')
@@ -225,6 +225,16 @@ const loadProduct = async(req,res)=>{
 
 const addProduct = async (req, res) => {
     try {
+       if(!req.files || req.files.length===0){  
+        return res.json({success:false, message:'No image uploaded'});
+       }
+
+        const allowFileTypes=['image/jpeg', 'image/png'];
+        for(const file of req.files){
+            if(!allowFileTypes.includes(file.mimetype)){
+                return res.json({success:false,message:'Invalid file type'})
+            }
+        }
        
    
    console.log(req.files);
@@ -239,18 +249,7 @@ const addProduct = async (req, res) => {
             success:false
         })
      });
-//   const products = await Product.find()
-        
-       
 
-        // Checking productData  not empty before rendering
-        
-        // if (productData) {
-        //      res.js
-        //     // res.render('productIndex', { products: products});
-        // } else {
-        //     res.render('productIndex');
-        // }
     } catch (error) {
         console.log(error.message);
         
@@ -344,31 +343,50 @@ const editProductLoad= async(req,res)=>{
         console.log(error.message);
     }
 }
- const editProduct= async(req,res)=>{
-    console.log(req.body);
-    try {
-       
+    const editProduct= async(req,res)=>{
+        console.log(req.body);
+        try {
+        
 
-        let updateFields={
-            name:req.body.name,
-            price:req.body.price,
-            stock:req.body.stock ,
-            description:req.body.description,
+            let updateFields={
+                name:req.body.name,
+                price:req.body.price,
+                stock:req.body.stock ,
+                description:req.body.description,
+                
+            };
             
-        };
-       const productData= await Product.findByIdAndUpdate(
-        req.body.product_id,
-        {$set:updateFields},
-        {new:true}
-       );
-       if(!productData){
-        return res.status(404).json({error:"product not found"});
-       }
-        return res.redirect("/admin/productIndex");
-    } catch (error) {
-        console.log(error.message);
+            let productId=req.body.productId;
+            
+            let productAlreadyExist = await Product.findOne({ 
+                name: updateFields.name, 
+                _id: { $ne: productId } 
+            });
+            console.log("productalready:",productAlreadyExist);
+            if(productAlreadyExist){
+                const response={productNameAlreadyExist:true};
+                return res.json(response);
+            }else{
+                
+                console.log("elseiddd:",productId);
+                console.log("updateFields:",updateFields);
+            console.log("productAlreadyExist:",productAlreadyExist);
+        let productData= await Product.findByIdAndUpdate(
+            productId,
+            {$set:updateFields},
+            {new:true}
+            
+        );
+        console.log('productdata:',productData);
+        if(!productData){
+            return res.status(404).json({error:"product not found"});
+        }
+            return res.redirect("/admin/productIndex");
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
     }
- }
 
 const notActiveCategory= async(req,res)=>{
    try{

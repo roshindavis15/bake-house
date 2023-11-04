@@ -5,6 +5,12 @@ const admin_route=express();
 
 const session=require("express-session");
 const config=require("../config/config")
+const adminAuth= require("../middleware/adminAuth");
+const adminController=require("../controllers/adminController");
+const coupenController=require("../controllers/coupenController")
+const multer= require('multer');
+const bodyParser=require("body-parser");
+
 admin_route.use(session({
     secret:config.sessionSecret,
     saveUninitialized:false,
@@ -12,19 +18,19 @@ admin_route.use(session({
 }));
 
 
-const bodyParser=require("body-parser");
+
 admin_route.use(bodyParser.json());
 admin_route.use(bodyParser.urlencoded({extended:true}));
 
 admin_route.set('view engine','ejs')
 admin_route.set('views','./views/admin');
 
-const adminAuth= require("../middleware/adminAuth");
 
 
-const adminController=require("../controllers/adminController");
 
-const multer= require('multer');
+
+
+
 
 const storage= multer.diskStorage({
     destination:function(req,file,cb){
@@ -78,6 +84,12 @@ admin_route.post('/editProduct',adminAuth.isLogin,adminController.editProduct);
 
 admin_route.get('/notActive',adminAuth.isLogin,adminController.notActiveCategory);
 admin_route.get('/isActive',adminAuth.isLogin,adminController.ActiveCategory);
+
+admin_route.get('/CoupenManagment',adminAuth.isLogin,coupenController.coupenManagementLoad);
+admin_route.get('/add-coupen',adminAuth.isLogin,coupenController.addCoupenLoad);
+admin_route.post('/addCoupen',adminAuth.isLogin,coupenController.addCoupen);
+admin_route.get('/activeCoupen',adminAuth.isLogin,coupenController.activatingCoupen);
+admin_route.get('/notActiveCoupen',adminAuth.isLogin,coupenController.deactivatingCoupen);
 
 
 

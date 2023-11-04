@@ -68,7 +68,7 @@
 									<td class="product-image"><img src="/frutika-master/uploads/<%=products[i].image%>" alt=""></td>
 									<td class="product-name"><%=products[i].name%></td>
 									<td class="product-price"><%=products[i].price%></td>
-									<td class="product-quantity"><input class="quantity-input" type="number" min="1" data-product-id="<%=products[i]._id %>" value="<%= products[i].quantity %>"></td>j
+									<td class="product-quantity"><input class="quantity-input" type="number" min="1" data-product-id="<%=products[i]._id %>" value="<%= products[i].quantity %>"></td>
 									<td class="product-total"><%=products[i].total%></td>
 									<td class="product-categorydis"><%=products[i].categoryOffer%>%</td>
 									<td class="product-productdis"><%=products[i].productOffer%>%</td>
@@ -82,10 +82,6 @@
 
 					<div id="outOfStockMessage" style="color: red;"></div>
 
-					<div class="cart-buttons">
-						<a href="cart.html" class="boxed-btn">Update Cart</a>
-						
-					</div>
 				</div>
 				
 
@@ -110,22 +106,39 @@
 								</tr>
 							</tbody>
 						</table>
+                        
+
 						<div class="cart-buttons">
 							
 							<a href="/checkout" class="boxed-btn black">Check Out</a>
 						</div>
+
+
+						<div class="coupon-section">
+							<h3>Apply Coupon</h3>
+							<div class="coupon-form-wrap">
+								<form id="applyCouponForm">
+									<input type="text" id="couponInput" placeholder="Coupon">
+									<select id="couponDropdown">
+										<option value="">Select a Coupon</option>
+										<% for (const coupon of activeCoupens) { %>
+											<option value="<%= coupon.coupenCode %>"><%= coupon.description %></option>
+										<% } %>
+									</select>
+									
+									
+									<p><input type="submit" value="Apply"></p>
+								</form>
+							</div>
+						</div>
+						
 					</div>
 
-					<div class="coupon-section">
-						<h3>Apply Coupon</h3>
-						<div class="coupon-form-wrap">
-							<form action="index.html">
-								<p><input type="text" placeholder="Coupon"></p>
-								<p><input type="submit" value="Apply"></p>
-							</form>
-						</div>
+
+						
 					</div>
-				</div>
+
+					
 			</div>
 		</div>
 	</div>
@@ -250,6 +263,7 @@
 	<script src="assets/js/sticker.js"></script>
 	<!-- main js -->
 	<script src="assets/js/main.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<script>
 		document.querySelectorAll('.quantity-input').forEach(input=>{
 			input.addEventListener('change',async(event)=>{
@@ -329,6 +343,64 @@
 			})
 		})
 	</script>
+
+<script>
+    
+    const couponDropdown = document.getElementById('couponDropdown');
+
+    const couponInput = document.getElementById('couponInput');
+    couponDropdown.addEventListener('change', function () {
+
+        // Get the selected coupon code
+        const selectedCouponCode = couponDropdown.value;
+
+        // Set the coupon input field value to the selected coupon code
+        couponInput.value = selectedCouponCode;
+    });
+
+    
+    const applyCouponForm = document.getElementById('applyCouponForm');
+	console.log(" applyCouponForm:", applyCouponForm);
+    applyCouponForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+
+        const selectedCouponCode = couponInput.value;
+		console.log("selectedCouponCode:",selectedCouponCode);
+
+		fetch('/applyCoupen',{
+			method:'post',
+			headers:{
+				'Content-Type':'application/json',
+			},
+			body:JSON.stringify({coupenCode:selectedCouponCode}),
+		})
+        .then(response=>response.json())
+		.then(data=>{
+			if(data.result==="CoupenApplied"){
+				Swal.fire({
+					icon:'success',
+					title:'Coupon Applied',
+					text:'Coupon has been successfully applied'
+				})
+			}else if(data.result === "CoupenAlreadyUsed"){
+				Swal.fire({
+					icon:'error',
+					title:'Coupon Already Used',
+					text:'This coupon has already been applied by you'
+				})
+			}else{
+				Swal.fire({
+					icon:'error',
+					title:'Coupon Error',
+					text:'An error occurred while applying the coupon'
+				})
+			}
+		})
+    });
+</script>
+
+	
 
 </body>
 </html>

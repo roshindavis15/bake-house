@@ -32,7 +32,13 @@ const userSchema= new mongoose.Schema({
     block:{
         type:Boolean,
         default:false
-    }
+    },
+    usedCoupens:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:'Coupen'
+        }
+    ]
 
 });
 

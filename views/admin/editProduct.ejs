@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Product</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         body {
             background-color: #fdd7e4; /* Light pink background color */
@@ -22,8 +23,8 @@
                     <p>Customize your product</p>
                 </div>
                 <div class="card-body">
-                    <form action="/admin/editProduct" method="post">
-                        <input type="hidden" name="product_id" value="<%= product._id %>">
+                    <form action="/admin/editProduct" method="post" id="editForm"> 
+                        <input type="hidden" name="product_id" id="productId" value="<%= product._id %>">
                         
                         <div class="form-group">
                             <label for="name">Product Name</label>
@@ -58,5 +59,56 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("editForm");
+        const nameInput = document.getElementById("name");
+        const productIdInput= document.getElementById("productId");
+        const productPriceInput=document.getElementById("price");
+        const stockInput=document.getElementById("stock");
+        const descriptionInput=document.getElementById("description");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            
+            const newName = nameInput.value;
+            const productId=productIdInput.value;
+            const newPrice=productPriceInput.value;
+            const newStock=stockInput.value;
+            const newDescription=descriptionInput.value;
+            console.log("newName:", newName);   
+            console.log("productId:",productId);
+
+            const response = await fetch('/admin/editProduct', {
+                method: 'POST',
+                body: JSON.stringify({ name: newName,productId:productId,price:newPrice,stock: newStock,description:newDescription}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            console.log("data:", data);
+            if (data.productNameAlreadyExist === true) {
+                console.log("Showing Swal alert");
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Already Exist',
+                    text: 'The Name With A Product Already Exist'
+                });
+            } else {
+                console.log("Form should be submitted");
+                form.submit();
+            }
+        });
+    });
+
+
+        
+    </script>
 </body>
 </html>

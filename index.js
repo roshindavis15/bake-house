@@ -5,10 +5,11 @@ mongoose.connect("mongodb://127.0.0.1:27017/bake_house_user_management_system").
 console.log(err.message);
 })
 
-
-
+const nocache = require('nocache')
 const express=require("express");
 const app=express();
+
+app.use(nocache())
 
 app.use(express.static('public'));
 

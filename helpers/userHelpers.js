@@ -2,6 +2,9 @@ const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const User = require('../models/userModel')
 const Address= require('../models/addressModel')
+const Product=require('../models/productsModel');
+const Category=require('../models/categoryModel')
+const Cart=require('../models/cartModel');
 const nodemailer = require('nodemailer')
 const config = require('../config/config')
 const otpGenerator= require('otp-generator');
@@ -129,11 +132,73 @@ const userAddress= (addressDatas,res,userId)=>{
 }
 
 
+async function getSingleProduct(productId) {
+    try {
+        const singleProduct = await Product.findById(productId);
+        return singleProduct;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+async function getCategoryById(categoryId) {
+    try {
+        const category = await Category.findById(categoryId);
+        return category;
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function getCheckoutData(userId) {
+    try {
+        const defaultAddress = await Address.findOne({ user_id: userId, 'address.isDefault': true });
+        const defaultAddressNotFound = "Default address not found. Please add an address before proceeding to checkout.";
+
+        const userDocument = await Address.find({ user_id: userId });
+        const addressArray = userDocument.map(addressDocument => addressDocument.address);
+
+        const filteredAddressess=  addressArray.map(userAddresses=> userAddresses.filter(address=> !address.isDefault));
+
+        const cart = await Cart.findOne({ user_id: userId });
+        const cartTotal = cart.cartTotal;
+        console.log("cartTotal:",cartTotal);
+        async function getProductName(productId) {
+            const productInfo = await Product.findById(productId);
+            return productInfo ? productInfo.name : 'Product not found';
+        }
+
+        const productDetails = [];
+        for (const product of cart.products) {
+            const productName = await getProductName(product.productId);
+            productDetails.push({
+                productName,
+                subtotal: product.subtotal,
+            });
+        }
+        console.log("productDetails:",productDetails);
+        return {
+            defaultAddress: defaultAddress || { defaultAddressNotFound },
+            filteredAddressess,
+            cartTotal,
+            productDetails,
+        };
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+
 module.exports ={
 
     insertUser,
     sendVerifyMail,
     otpStorage,
-    userAddress
+    userAddress,
+    getSingleProduct,
+    getCategoryById,
+    getCheckoutData
 
 }

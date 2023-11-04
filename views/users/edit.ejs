@@ -57,7 +57,8 @@
     profileUpdateBtn.addEventListener('click',checkProfileAndsubmit);
    async function checkProfileAndsubmit(e){
         e.preventDefault()
-      
+       const name=document.getElementById('name').value;
+       console.log("name:",name);
        const email = document.getElementById('email').value;
        const mobile = document.getElementById('mobile').value;
        
@@ -68,7 +69,8 @@
             },
             body:JSON.stringify({
                 email,
-                mobile
+                mobile,
+                name
               
             }) 
 
