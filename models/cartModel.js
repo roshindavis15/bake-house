@@ -31,7 +31,15 @@ const cartSchema=new mongoose.Schema({
     cartTotal:{
         type:Number,
         default:0
-    }
+    },
+    usedCoupens:{
+        
+            type:mongoose.Schema.Types.ObjectId,
+            ref:'Coupen',
+            default:null
+        }
+        
+    
 });
 
 module.exports=mongoose.model('Cart',cartSchema);

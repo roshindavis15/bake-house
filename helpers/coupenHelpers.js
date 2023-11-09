@@ -10,7 +10,7 @@ const config = require('../config/config')
 
 const addCoupen=(coupenDatas)=>{
     return new Promise(async(resolve,reject)=>{
-        const{coupenCode,description,discount,maxDiscountAmount,validFor,usageCount}=coupenDatas;
+        const{coupenCode,description,discount,maxDiscountAmount,validFor,usageLimit}=coupenDatas;
         
         const parsedMAximumDiscount=parseInt(maxDiscountAmount);
         const parsedValidFor=parseInt(validFor)
@@ -23,7 +23,7 @@ const addCoupen=(coupenDatas)=>{
              maxDiscountAmount: parsedMAximumDiscount,
              validFor:parsedValidFor,
              createdOn:new Date(),
-             usageCount:usageCount
+             usageLimit:usageLimit
         });
         console.log("coupenssssss:",coupens.toObject());
         try {
@@ -83,33 +83,91 @@ async function getActiveCoupens(){
 }
 
 
-const applyCoupenToUser= async(userId,coupenCode)=>{
-    
-    try {
-        const user= await User.findById(userId);
+    const applyCoupenToUser= async(coupenCode,userId)=>{
+        
+        try {
+            
+            const cart=await Cart.findOne({user_id:userId});
+            console.log("cartforapplyCoupeeenennnn:",cart);
 
-        // Check if the user has already used this coupon
+            const coupen=await Coupen.findOne({coupenCode})
+            
+            if(coupen.usageCount >=coupen.usageLimit){
+                return "limitExceeds"
+            }else{
 
-        if(user.usedCoupens.includes(coupenCode)){
-            return "CouponAlreadyUsed"
-        }
+                // Check if the user has already used this coupon
 
-        // If the coupon is not already used, apply it to the user
-        user.usedCoupens.push(coupenCode);
+            if(cart.usedCoupens){
+                return "CouponAlreadyUsed"
+            }
 
-        // Save the updated user document
-        await user.save();
+            // If the coupon is not already used, apply it to the user
+            cart.usedCoupens=coupen._id
+            coupen.usageCount+=1;
 
-        return "CouponApplied";
+            // Save the updated user document
+            await cart.save();
+
+            return "CouponApplied";
+            }
+            
+        
+
     } catch (error) {
         return "CouponError";
     }
 }
+
+
+const getCoupendata=async(userId)=>{
+      
+        try {
+            
+            const cart=await Cart.findOne({user_id:userId});
+           
+            const coupenId=cart.usedCoupens;
+            
+            let coupenDetails=[];
+
+           if(coupenId){
+            const coupen= await Coupen.findById(coupenId);
+            console.log("coupen:",coupen);
+
+            if(coupen){
+                coupenDetails.push({
+                    coupenCode:coupen.coupenCode,
+                    discount:coupen.discount,
+                    maxDiscountAmount:coupen.maxDiscountAmount
+                })
+            }
+           }
+           console.log("coupenDetails",coupenDetails);
+    
+            
+            
+            return coupenDetails
+            
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+
+
+    
+}
+
+
+
+
+
+
 
 module.exports={
     addCoupen,
     activateCoupen,
     deactivateCoupen,
     getActiveCoupens,
-    applyCoupenToUser
+    applyCoupenToUser,
+    getCoupendata
 }

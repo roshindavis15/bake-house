@@ -1,0 +1,51 @@
+/* Your CSS styles for the page can be added here */
+	/* Example styles for the order success page */
+	body {
+		font-family: Arial, sans-serif;
+		background-color: #f2f2f2;
+	}
+	.order-confirmation {
+		max-width: 600px;
+		margin: 0 auto;
+		background-color: #fff;
+		padding: 20px;
+		border-radius: 5px;
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+		text-align: center;
+	}
+	.order-confirmation h1 {
+		color: #333;
+	}
+	.order-confirmation p {
+		color: #666;
+	}
+	.order-details {
+		background-color: #f9f9f9;
+		padding: 10px;
+		border-radius: 5px;
+		margin-top: 20px;
+	}
+	.order-details h2 {
+		color: #333;
+	}
+	.order-details p {
+		color: #666;
+		margin: 5px 0;
+	}
+	.action-buttons {
+		margin-top: 20px;
+	}
+	.action-buttons a {
+		display: inline-block;
+		text-decoration: none;
+		background-color: #db7734;
+		color: #fff;
+		padding: 10px 20px;
+		border-radius: 5px;
+		margin: 0 10px;
+		font-weight: bold;
+	}
+	.action-buttons a:hover {
+		background-color: #070707;
+		color:  #db7734;
+	}

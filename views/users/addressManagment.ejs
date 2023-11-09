@@ -1,63 +1,42 @@
-<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-            <style>
-                /* Set the background color to black for the entire body */
-                body {
-                    background-color: #000;
-                    color: #fff; /* Change text color to white */
-                }
+<%- include('../layouts/header')%>
 
-                /* Custom styles for address cards */
-                .address-card {
-                    border: 1px solid #333; /* Darken the border color */
-                    border-radius: 5px;
-                    padding: 20px;
-                    margin: 20px 0;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    position:relative;
-                }
+   <!-- search area -->
+	<div class="search-area">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-12">
+					<span class="close-btn"><i class="fas fa-window-close"></i></span>
+					<div class="search-bar">
+						<div class="search-bar-tablecell">
+							<h3>Search For:</h3>
+							<input type="text" placeholder="Keywords">
+							<button type="submit">Search <i class="fas fa-search"></i></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end search arewa -->
+	
+	<!-- breadcrumb-section -->
+	<div class="breadcrumb-section breadcrumb-bg">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-8 offset-lg-2 text-center">
+					<div class="breadcrumb-text">
+						
+						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end breadcrumb section -->         
 
-                .address-card h4 {
-                    margin-top: 0;
-                }
 
-                .address-card p {
-                    margin-bottom: 5px;
-                }
 
-                .address-card .edit-button {
-                    margin-top: 10px;
-                }
 
-                .address-card .edit-button a {
-                    text-decoration: none;
-                    color: #007bff;
-                }
-
-                /* Custom styles for the "Add Address" button */
-                .add-address-button {
-                    margin-top: 20px;
-                }
-                .default-badge {
-                    position: absolute;
-                    top: 10px;
-                    right: 10px;
-                    background-color: #007bff;
-                    color: #fff;
-                    padding: 5px 10px;
-                    border-radius: 5px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    }
-            
-
-            </style>
-        </head>
-        <body>
             <!-- Address Card Template -->
             <div class="container mt-5">
                 <% if ( addressData  && Array.isArray(addressData) && addressData.length > 0) { %>
@@ -110,5 +89,6 @@
             <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
             <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        </body>
-        </html>
+        
+
+            <%- include('../layouts/footer')%>

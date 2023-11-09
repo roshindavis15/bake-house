@@ -33,12 +33,7 @@ const userSchema= new mongoose.Schema({
         type:Boolean,
         default:false
     },
-    usedCoupens:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'Coupen'
-        }
-    ]
+   
 
 });
 

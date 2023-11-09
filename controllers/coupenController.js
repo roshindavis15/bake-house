@@ -84,9 +84,12 @@ const applyingCoupen=async(req,res)=>{
         
         coupenCode=req.body.coupenCode;
         userId=req.session.user_id;
-        console.log("coupenCode:",coupenCode);
         
         const result= await coupenHelper.applyCoupenToUser(coupenCode,userId);
+
+        if(result==="limitExceeds"){
+            res.json({result:"limitExceeds"})
+        }
         
         if(result=== "CouponApplied"){
 

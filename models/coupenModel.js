@@ -28,6 +28,10 @@ const coupenSchema= new mongoose.Schema({
 
     },
     usageCount:{
+        type:Number,
+        default:0
+    },
+    usageLimit:{
         type:Number
     },
     createdOn:{

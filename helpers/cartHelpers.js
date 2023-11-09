@@ -19,7 +19,7 @@ async function addToCart(userId, productId) {
 
         const existingProductIndex = cart.products.findIndex(product => product.productId.toString() === productId);
 
-        let product; 
+    
 
         if (existingProductIndex === -1) {
             product = await Product.findById(productId); 
@@ -65,7 +65,7 @@ async function loadCart(userId) {
             path: 'products.productId',
             populate: { path: 'category', select: 'Discount' }
         });
-
+    
         if (!userCart) {
             return { message: "Your Cart Is Empty" };
         }
@@ -263,9 +263,53 @@ async function removeProductFromCart(userId, productId) {
 }
 
 
+async function getOrderedProducts(userId){
+    try {
+        const cart = await Cart.findOne(({user_id:userId}));
+        
+        
+        if(cart){
+            const orderedProducts=cart.products;
+            console.log("orderedProducts:",orderedProducts);
+
+            let orderedProductDetails=[];
+            let  totalOfferDiscount=0
+
+            for(const product of orderedProducts){
+                const offerAmount=product.total-product.subtotal;
+                totalOfferDiscount+=offerAmount;
+               
+               console.log("totalOfferDiscount:",totalOfferDiscount);
+                const productDetails=await Product.findById(product.productId);
+                console.log("details:",productDetails);
+                if(productDetails){
+                    console.log("product.quantity,:",product.quantity);
+                    console.log("product.total:",product.total);
+                    const orderedProductDetail={
+                        productId:productDetails._id,
+                        productName:productDetails.name,
+                        productPrice:productDetails.price,
+                        productDescription:productDetails.description,
+                        quantity:product.quantity,
+                        total:product.total,
+                    };
+                    orderedProductDetails.push(orderedProductDetail);
+                }
+            }
+            console.log("orderedProductsDetails:", orderedProductDetails);
+
+            return {orderedProductDetails,totalOfferDiscount}
+        }
+    } catch (error) {
+             
+              return { orderedProductDetails: [], totalOfferDiscount: 0 }; // Return default values in case of an error
+    }
+}
+
 module.exports = {
     addToCart,
     loadCart,
     updateQuantity,
-    removeProductFromCart
+    removeProductFromCart,
+    getOrderedProducts
 }

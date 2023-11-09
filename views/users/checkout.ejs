@@ -25,7 +25,7 @@
 				<div class="row">
 					<div class="col-lg-8 offset-lg-2 text-center">
 						<div class="breadcrumb-text">
-							<p>Fresh and Organic</p>
+							
 							<h1>Check Out Product</h1>
 						</div>
 					</div>
@@ -215,15 +215,47 @@
 									<tr>
 										<td>Subtotal</td>
 										<td><%=cartTotal%></td>
+
 									</tr>
+									<% if(coupenData !='undefined' && coupenData.length>0){%>
+                                        <%for(i=0;i<coupenData.length;i++){%>
+										<tr>
+											<td><%=coupenData[i].coupenCode%></td>
+											<td>-<%=coupenData[i].discount%>%</td>
+										</tr>
+										<% }%>
+
+										<% }%>
 									
 									<tr>
-										<td>Total</td>
-										<td></td>
+										<td>Total TO Pay</td>
+										<td><%=totalToPay%>	</td>
 									</tr>
 								</tbody>
 							</table>
-							<a href="#" class="boxed-btn">Place Order</a>
+
+							<!-- Add this to your checkout section -->
+<!-- Add this to your checkout section -->
+<!-- Add this to your checkout section -->
+<div class="payment-options">
+	<h3>Select Payment Method:</h3>
+	<div class="payment-option">
+	  <input type="radio" id="cod" name="paymentMethod" value="cod">
+	  <label for="cod">Cash on Delivery (COD)</label>
+	</div>
+	<div class="payment-option">
+	  <input type="radio" id="online" name="paymentMethod" value="online">
+	  <label for="online">Online Payment</label>
+	</div>
+	<div class="payment-option">
+	  <input type="radio" id="wallet" name="paymentMethod" value="wallet">
+	  <label for="wallet">Wallet</label>
+	</div>
+</div>
+  
+  
+  
+							<a href="/place-order" class="boxed-btn" id="placeOrderButton">Place Order</a>
 						</div>
 					</div>
 				</div>
@@ -288,6 +320,50 @@
 		
 
 </script>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		const placeOrderButton = document.getElementById('placeOrderButton');
+
+		placeOrderButton.addEventListener('click', function (event) {
+			event.preventDefault(); 
+
+			// Get the selected payment method
+			const paymentMethod = document.querySelector('input[type="radio"][name="paymentMethod"]:checked').value;
+
+			console.log("paymentMethod:", paymentMethod);
+
+			fetch('/place-order', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					paymentMethod: paymentMethod,
+				}),
+			})
+			.then(response => response.json()) 
+			.then(data => {
+                
+				if(data.success){
+					console.log("Response from the server:", data.message);
+                     
+					window.location.href = '/orderSuccess'; 
+                    
+				} else{
+					console.error('Error:', data.message);
+				}
+				
+				
+				
+			})
+			.catch(error => {
+				console.error('Error:', error);
+			});
+		});
+	});
+</script>
+
 
 
 		

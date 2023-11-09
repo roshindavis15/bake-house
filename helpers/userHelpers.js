@@ -5,6 +5,7 @@ const Address= require('../models/addressModel')
 const Product=require('../models/productsModel');
 const Category=require('../models/categoryModel')
 const Cart=require('../models/cartModel');
+const Coupen=require('../models/coupenModel');
 const nodemailer = require('nodemailer')
 const config = require('../config/config')
 const otpGenerator= require('otp-generator');
@@ -163,7 +164,7 @@ async function getCheckoutData(userId) {
 
         const cart = await Cart.findOne({ user_id: userId });
         const cartTotal = cart.cartTotal;
-        console.log("cartTotal:",cartTotal);
+        
         async function getProductName(productId) {
             const productInfo = await Product.findById(productId);
             return productInfo ? productInfo.name : 'Product not found';
@@ -177,7 +178,8 @@ async function getCheckoutData(userId) {
                 subtotal: product.subtotal,
             });
         }
-        console.log("productDetails:",productDetails);
+
+        
         return {
             defaultAddress: defaultAddress || { defaultAddressNotFound },
             filteredAddressess,

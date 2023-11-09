@@ -1,0 +1,49 @@
+/* Set the background color to black for the entire body */
+body {
+    background-color: #ece2e2;
+    color: #050505; /* Change text color to white */
+}
+
+/* Custom styles for address cards */
+.address-card {
+    border: 1px solid #333; /* Darken the border color */
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position:relative;
+}
+
+.address-card h4 {
+    margin-top: 0;
+}
+
+.address-card p {
+    margin-bottom: 5px;
+}
+
+.address-card .edit-button {
+    margin-top: 10px;
+}
+
+.address-card .edit-button a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+/* Custom styles for the "Add Address" button */
+.add-address-button {
+    margin-top: 20px;
+}
+.default-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #007bff;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    }
+

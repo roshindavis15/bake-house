@@ -4,10 +4,12 @@ const bcrypt= require('bcrypt');
 const userHelper = require('../helpers/userHelpers')
 const cartHelper= require('../helpers/cartHelpers');
 const coupenHelper=require('../helpers/coupenHelpers');
+const addressHelper= require('../helpers/addressHelper')
 const Product=require("../models/productsModel");
 const Category=require('../models/categoryModel');
 const Address=require('../models/addressModel');
 const Cart= require('../models/cartModel');
+const Order=require('../models/orderModel')
 const nodemailer=require('nodemailer');
 const config=require("../config/config");
 const randomstring= require('randomstring')
@@ -255,10 +257,9 @@ const addToCart = async (req, res) => {
     const loadCart = async (req, res) => {
     try {
         const result = await cartHelper.loadCart(req.session.user_id);
-        const activeCoupens= await coupenHelper.getActiveCoupens();
-        console.log("activeCoupens:",activeCoupens);
-
-        if (result.message) {
+        const activeCoupens= await coupenHelper.getActiveCoupens()
+        
+         if (result.message) {
             res.render('cart', { message: result.message });
         } else {
             res.render('cart', {
@@ -310,9 +311,34 @@ const removeProductFromCart = async (req, res) => {
 const checkoutLoad = async (req, res) => {
     try {
         const userId = req.session.user_id;
+       
 
         const checkoutData = await userHelper.getCheckoutData(userId);
-        console.log("checkOutData:",checkoutData);
+        
+        const coupenData= await coupenHelper.getCoupendata(userId);
+          
+        console.log("coupenData:",coupenData);
+
+        checkoutData.coupenData=coupenData;
+
+        let totalDiscount=0;
+        if(checkoutData.coupenData){
+            for(const coupen of checkoutData.coupenData) {
+               
+                const discountAmount=(checkoutData.cartTotal*coupen.discount)/100;
+
+                if(discountAmount > coupen.maxDiscountAmount){
+                    totalDiscount += coupen.maxDiscountAmount;
+                }else{
+                    totalDiscount+=discountAmount;
+                }
+            }
+        }
+       const totalToPay=checkoutData.cartTotal-totalDiscount;
+
+       // Add the totalToPay to the checkoutData
+
+       checkoutData.totalToPay = totalToPay;
 
         res.render('checkout', checkoutData);
 
@@ -334,6 +360,59 @@ const addAddressInCheckout=async(req,res)=>{
 }
 
 
+const orderPlacing = async(req,res)=>{
+    try {
+        let userId=req.session.user_id;
+        
+        let paymentMethod=req.body.paymentMethod;
+        
+        // if(paymentMethod==cod){
+        //     deliveyStatus= "order placed"
+        // }
+
+        console.log("paymentMethod:",paymentMethod);
+        
+        const { orderedProductDetails, totalOfferDiscount } = await cartHelper.getOrderedProducts(userId);
+         console.log("orderedProductDetailstttttt:",orderedProductDetails);
+        const appliedCoupenDetails=await coupenHelper.getCoupendata(userId);
+        let coupenCode=0;
+        let discount=0;
+        if(appliedCoupenDetails){
+             coupenCode= appliedCoupenDetails[0].coupenCode;
+             discount=  appliedCoupenDetails[0].discount;
+        }
+       
+        console.log("appliedCoupenDetailsssssssss:",appliedCoupenDetails);
+        
+        const addressDetails= await addressHelper.getDefaultAddress(userId)
+        console.log("addressDetails:",addressDetails);
+
+        const order= new  Order({
+            userId:userId,
+            date:new Date(),
+            paymentMethod:paymentMethod,
+            coupenCode:coupenCode,
+            coupenDiscount:discount,
+            offerDiscount:totalOfferDiscount,
+            products:orderedProductDetails,
+            addressDetails:addressDetails
+            
+        })
+        
+        await order.save();
+        console.log("orddeerrrr:");
+        res.json({success:true,message:"Order Placed Successfully"})
+        
+    
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const orderSucccessLoad=async(req,res)=>{
+
+    res.render('order-success')
+}
    
 const userLogout=async(req,res)=>{
     try {
@@ -503,6 +582,7 @@ const addressManagement= async(req,res)=>{
         const userId = req.session.user_id;
         const addressData= await Address.find({user_id: userId});
 
+
         res.render('addressManagment',{addressData});
         } catch (error) {
         console.log(error.message);
@@ -627,7 +707,7 @@ const setasDefault = async (req, res) => {
             { $set: { "address.0.isDefault": true } }
         );
 
-        // Save the updated address if necessary, depending on your schema
+        
         await addressDataToUpdate.save();
 
         if (req.query.source === 'checkout') {
@@ -640,6 +720,8 @@ const setasDefault = async (req, res) => {
         return res.status(500).json({ error: error.message }); // Properly handle errors with a status code
     }
 }
+
+
     
 
     
@@ -676,6 +758,8 @@ module.exports={
     removeProductFromCart,
     checkoutLoad,
     addAddressInCheckout,
+    orderPlacing,
+    orderSucccessLoad
 
     
 }
