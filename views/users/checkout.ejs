@@ -86,107 +86,7 @@
 						</div>
 					</div>
 					
-					<!-- modal for display the other addresses -->
-
 					
-<div class="modal" id="addressModal" tabindex="-1" role="dialog">
-	<div class="modal-dialog" role="document">
-	  <div class="modal-content">
-		<div class="modal-header">
-		  <h5 class="modal-title">Select an Address</h5>
-		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		  </button>
-		</div>
-		<div class="modal-body">
-		  <!-- Iterate through filteredAddressess to display the addresses -->
-		  <% for (let addresses of filteredAddressess) { %>
-			<% if (addresses.length > 0) { %>
-			  <div class="address-set">
-				<% for (let address of addresses) { %>
-				  <div class="address-item">
-					<p><strong>Name:</strong> <%= address.name %></p>
-					<p><strong>Mobile:</strong> <%= address.mobile %></p>
-					<p><strong>Home Address:</strong> <%= address.homeAddress %></p>
-					<p><strong>Place:</strong> <%= address.place %></p>
-					<p><strong>Pin Code:</strong> <%= address.pincode %></p>
-					
-					<input type="radio" name="selectedAddress" value="<%= address._id %>">
-				  </div>
-				<% } %>
-			  </div>
-			<% } %>
-		  <% } %>
-		</div>
-		<div class="modal-footer">
-			<div class="col-md-12">
-				<a href="#" class="btn btn-success add-address-button" data-toggle="modal" data-target="#addAddressModal" id="openAddAddressModal">Add Address</a>
-
-
-			</div>
-		  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-		  <button type="button" class="btn btn-primary">Save Address</button>
-		</div>
-	  </div>
-	</div>
-  </div>
-
-  <!-- Add address modal form -->
-
-  <div class="modal" id="addAddressModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Address</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Your Add Address Form Goes Here -->
-                <form action="/addAddressInCheckout" method="POST">
-                 <!-- Name Input -->
-            <div class="form-input">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-
-            <!-- Mobile Input -->
-            <div class="form-input">
-                <label for="mobile">Mobile:</label>
-                <input type="text" id="mobile" name="mobile" required>
-            </div>
-
-            <!-- Home Address Input -->
-            <div class="form-input">
-                <label for="homeAddress">Home Address:</label>
-                <input type="text" id="homeAddress" name="homeAddress" required>
-            </div>
-
-            <!-- Place Input -->
-            <div class="form-input">
-                <label for="place">Place:</label>
-                <input type="text" id="place" name="place" required>
-            </div>
-
-            <!-- Pincode Input -->
-            <div class="form-input">
-                <label for="pincode">Pincode:</label>
-                <input type="text" id="pincode" name="pincode" required>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="form-input">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-  
-
 					<div class="col-lg-4">
 						<div class="order-details-wrap">
 							<table class="order-details">
@@ -278,52 +178,12 @@
 		</style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-		<script>
-			$(document).ready(function () {
-  $("#changeAddressButton").click(function () {
-    $("#addressModal").modal("show"); // Display the modal when the button is clicked
-  });
-});
-
-		</script>
-		<script>
-			document.getElementById('openAddAddressModal').addEventListener('click', function () {
-				$('#addressModal').modal('hide'); // Close the address modal
-			});
-		</script>
 		
-<script>
-	document.addEventListener('DOMContentLoaded', function () {
-    const radioButtons = document.querySelectorAll('input[type="radio"][name="selectedAddress"]')
-	console.log("radioButtons:",radioButtons);
-    radioButtons.forEach(function (radioButton) { // Use forEach, not foreach
-        radioButton.addEventListener('change', function () {
-            const selectedAddressId = radioButton.value;
-            // The rest of your code remains the same
-            fetch(`/setasDefault?id=${selectedAddressId}&source=checkout`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data.message);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-        });
-    });
-});
-
 		
-
-</script>
-
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
 		const placeOrderButton = document.getElementById('placeOrderButton');
+		const changeAddressButton = document.getElementById('changeAddressButton'); 
 
 		placeOrderButton.addEventListener('click', function (event) {
 			event.preventDefault(); 
@@ -347,8 +207,10 @@
                 
 				if(data.success){
 					console.log("Response from the server:", data.message);
+
+					const orderId=data.orderId;
                      
-					window.location.href = '/orderSuccess'; 
+					window.location.href = '/orderSuccess?orderId='+orderId; 
                     
 				} else{
 					console.error('Error:', data.message);
@@ -361,6 +223,11 @@
 				console.error('Error:', error);
 			});
 		});
+
+		changeAddressButton.addEventListener('click',function(event){
+			event.preventDefault();
+			window.location.href = '/addressManagement';
+		})
 	});
 </script>
 

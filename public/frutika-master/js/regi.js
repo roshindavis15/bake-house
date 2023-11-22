@@ -61,6 +61,5 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
         } else {
             errorName.style.display = "none";
-        }
-    });
+     }});
 });

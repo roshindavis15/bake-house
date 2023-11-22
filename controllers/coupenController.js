@@ -82,20 +82,22 @@ const deactivatingCoupen=async(req,res)=>{
 const applyingCoupen=async(req,res)=>{
     try {
         
-        coupenCode=req.body.coupenCode;
-        userId=req.session.user_id;
+       const coupenCode=req.body.coupenCode;
+       console.log("coupenCode:",coupenCode);
+       const userId=req.session.user_id;
         
         const result= await coupenHelper.applyCoupenToUser(coupenCode,userId);
 
-        if(result==="limitExceeds"){
+        if(result=== "CouponApplied"){
+        
+        res.json({ result: "CouponApplied",coupenCode});
+        }
+        
+        else if(result==="limitExceeds"){    
             res.json({result:"limitExceeds"})
         }
         
-        if(result=== "CouponApplied"){
-
-            res.json({ result: "CouponApplied"})
-
-        }else if(result === "CouponAlreadyUsed"){
+       else if(result === "CouponAlreadyUsed"){
 
             res.json({ result: "CouponAlreadyUsed" });
         }else{
@@ -111,7 +113,17 @@ const applyingCoupen=async(req,res)=>{
     }
 }
 
+const removeCoupenByUSer= async(req,res)=>{
 
+    const userId=req.session.user_id;
+    
+    const result=await coupenHelper.removingCoupen(userId);
+    
+    if(result=="removed"){
+        res.json({result:"coupenRemoved"});
+    }
+
+}
 
 
 
@@ -125,5 +137,6 @@ module.exports={
     addCoupen,
     activatingCoupen,
     deactivatingCoupen,
-    applyingCoupen
+    applyingCoupen,
+    removeCoupenByUSer
 }

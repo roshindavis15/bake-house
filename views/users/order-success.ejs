@@ -45,20 +45,63 @@
         <h1>Order Successful</h1>
         <p>Your order has been placed successfully. Thank you for shopping with us!</p>
         
-        <!-- Display order details here -->
         <div class="order-details">
-            <h2>Order Details</h2>
-            <p>Order ID: #123456</p>
-            <p>Order Date: October 1, 2023</p>
+            <p id="orderID"></p> <!-- This is where the order ID will be displayed -->
             <!-- Add more order details here -->
         </div>
-
         
+
         <div class="action-buttons">
-            <a href="order-tracking.html">Order Summary</a>
+            <a href="#" id="orderSummaryButton">Order Summary</a> <!-- Add an ID to the button -->
             <a href="/shop">Continue Shopping</a>
         </div>
+        
+        
     </div>
 </body>
 </html>
+
+
+<script>
+const urlParams=new URLSearchParams(window.location.search);
+const orderId=urlParams.get('orderId');
+console.log("orderIDd:",orderId);
+if(orderId){
+    document.getElementById('orderID').textContent='Order ID  ' +orderId;
+}
+document.getElementById('orderSummaryButton').addEventListener('click',function(){
+    if(orderId){
+        fetch(`/orderSummary?orderId=${orderId}`, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json',
+      }
+   })
+        .then(response=>response.json())
+        .then(data=>{
+         
+            if(data){
+
+                navigateToOrderSummary(data);
+            }
+
+        })
+        .catch(error=>{
+            console.error('Error:',error)
+        })
+    }
+})
+
+function navigateToOrderSummary(data){
+
+    const jsonData= JSON.stringify(data);
+
+    const encodedData=encodeURIComponent(jsonData)
+
+    const orderSummary=`/orderSummaryPage?data=${encodedData}`;
+
+    window.location.href=orderSummary;
+}
+</script>
+
 <%- include('../layouts/footer')%>

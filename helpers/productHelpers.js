@@ -47,21 +47,27 @@ const addCategory=(categoryDatas)=>{
     return new Promise(async(resolve,reject)=>{
         const{name,description,discount,isActive}= categoryDatas;
 
-        const categories= new Category({
-            Name:name,
-            Description:description,
-            Discount:discount,
-            IsActive:isActive
-
-        });
         try {
-            const categoryData= await categories.save();
-            
-            resolve(categoryData);
+            const existingCategory=await Category.findOne({Name:name});
+            if(existingCategory){
+                resolve({categoryExist:true});
+            }else{
+                const newCategory= new Category({
+                    Name:name,
+                    Description:description,
+                    Discount:discount,
+                    IsActive:isActive
+        
+                });
+
+                const savedCategory = await newCategory.save();
+                resolve({ categoryAlreadyExist: false, savedCategory });
+            }
         } catch (error) {
             console.error(error);
-            reject(error.message);
+            reject(error.message)
         }
+
     })
 }
 module.exports={

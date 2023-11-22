@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Category</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        body {
+            background-color: #fdd7e4; /* Light pink background color */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3>Edit Cateegory</h3>
+                    <p>Customize your Category</p>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/updateCategory" method="post" id="editForm"> 
+                        <input type="hidden" name="product_id" id="categoryId" value="<%= category._id %>">
+                        
+                        
+                        <div class="form-group">
+                            <label for="name">Category Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="<%=category.Name%>" placeholder="Enter Category Name" required>
+                            <span id="nameError" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" class="form-control" id="description" name="description" value="<%=category.Description%>" placeholder="Enter Description" required>
+                            <span id="descriptionError" class="text-danger"></span> 
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="discount">Discount</label>
+                            <input type="number" class="form-control" id="discount" name="discount" value="<%=category.Discount%>" placeholder="Enter Stock" required>
+                            <span id="discountError" class="text-danger"></span>
+                        </div>
+                        
+    
+                        <button type="submit" class="btn btn-danger">Update Category</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.getElementById('editForm').addEventListener('submit', async function(event){
+        event.preventDefault();
+
+        let categoryId = document.getElementById('categoryId').value;
+        let nameValue=document.getElementById('name').value.trim();
+        let discountValue=document.getElementById('discount').value.trim();
+        let description=document.getElementById('description').value
+        console.log(nameValue);
+        let namePattern=/^[A-Za-z\s]+$/;
+        let nameError=document.getElementById('nameError');
+        if(!namePattern.test(nameValue)){
+            nameError.textContent='Please enter only alphabetic characters for Category Name.'
+            return;
+    }else{
+        nameError.textContent='';
+    }
+    
+    
+    let discountError=document.getElementById('discountError');
+    if(isNaN(discountValue) || discountValue<0){
+        discountError.textContent='Please enter only numbers for the Discount.';
+        return;
+    }else{
+        discountError.textContent='';
+    }
+
+    const response = await fetch('/admin/updateCategory', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                categoryId: categoryId,
+                name: nameValue,
+                discount: discountValue,
+                description: description
+            })
+        });
+
+        let responseData = await response.json();
+        if(responseData.categoryAlreadyExist==true){
+            Swal.fire({
+                icon:'error',
+                title:'Already Exist',
+                text:'The name with the category already exist'
+            })
+            return;
+        }
+        if(responseData.categoryAlreadyExist==false){
+            Swal.fire({
+                icon:'success',
+                title:' Category Updated',
+                text:'Category Details Updated'
+            })
+        }
+    })
+</script>

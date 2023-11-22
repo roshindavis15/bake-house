@@ -194,6 +194,7 @@ const userManagement= async(req,res)=>{
 const productManagement = async (req,res)=>{
    try {
     const productData= await Product.find()
+    console.log("productData:",productData);
     
     res.render('productIndex',{products:productData});
    
@@ -225,39 +226,32 @@ const loadProduct = async(req,res)=>{
 
 const addProduct = async (req, res) => {
     try {
-       if(!req.files || req.files.length===0){  
-        return res.json({success:false, message:'No image uploaded'});
-       }
+        if (!req.files || req.files.length === 0) {
+            return res.json({ success: false, message: 'No image uploaded' });
+        }
 
-        const allowFileTypes=['image/jpeg', 'image/png'];
-        for(const file of req.files){
-            if(!allowFileTypes.includes(file.mimetype)){
-                return res.json({success:false,message:'Invalid file type'})
+        const allowFileTypes = ['image/jpeg', 'image/png'];
+        for (const file of req.files) {
+            if (!allowFileTypes.includes(file.mimetype)) {
+                return res.json({ fileType: false, message: 'Invalid file type' });
             }
         }
-       
-   
-   console.log(req.files);
-    const imagePaths=req.files.map(file => file.filename);
-     productHelper.addProduct(req.body,imagePaths).then((productData)=>{
 
-        res.json({
-            success:true
-        })
-     }).catch((err)=>{
-        res.json({
-            success:false
-        })
-     });
+        const imagePaths = req.files.map(file => file.filename);
+        productHelper.addProduct(req.body, imagePaths)
+            .then((productData) => {
+                res.json({ success: true });
+            })
+            .catch((err) => {
+                res.json({ success: false });
+            });
 
     } catch (error) {
         console.log(error.message);
         
-       
-        res.render('existingProductPopup');
-        
-    };
-}
+    }
+};
+
 
 const categoryLoad= async(req,res)=>{
     try {
@@ -270,13 +264,18 @@ const addCategory= async(req,res)=>{
     try {
         
         const categoryData= await productHelper.addCategory(req.body);
+        console.log("categoryDataa:",categoryData);
+
+        if(categoryData.categoryExist){
+
+            res.json({categoryAlreadyExist:true});
+
+        }else{
+
+            res.json({categoryAlreadyExist:false});
+        }
      
 
-        if(categoryData){
-            res.redirect('/admin/category');
-        } else{
-            res.render('category');
-        }
     } catch (error) {
         console.log(error.message);
         res.status(500).send("internal server error");
@@ -339,12 +338,14 @@ const editProductLoad= async(req,res)=>{
         if(editProduct){
             res.render('editProduct',{product:editProduct});
         }
-    } catch (error) {
+       } catch (error) {
         console.log(error.message);
+      }
     }
-}
-    const editProduct= async(req,res)=>{
-        console.log(req.body);
+
+
+const editProduct= async(req,res)=>{
+        
         try {
         
 
@@ -410,6 +411,61 @@ const ActiveCategory= async(req,res)=>{
     }
 }
 
+const editCategoryLoad=async(req,res)=>{
+    const categoryId=req.query.cid;
+    console.log("categoryId:",categoryId);
+    
+    const categoryData= await Category.findOne({_id:categoryId});
+    console.log("categoryData:",categoryData);
+    if(categoryData){
+        res.render('edit-category',{category:categoryData});
+    }
+
+}
+
+const updateCategory= async(req,res)=>{
+    try {
+        console.log("req.body:",req.body);
+        let updateFields={
+            Name:req.body.name,
+            Description:req.body.description,
+            Discount:req.body.discount
+        };
+
+      let  categoryId=req.body.categoryId
+        console.log("categoryIdddddd:",categoryId);
+        
+        let categoryAlreadyExist=await Category.findOne({
+            Name:updateFields.Name,
+            _id:{$ne:categoryId}
+        });
+        console.log("alreadyyy:",categoryAlreadyExist);
+
+        if(categoryAlreadyExist){
+            res.json({categoryAlreadyExist:true});
+        }
+        else{
+            let categoryData= await Category.findByIdAndUpdate(
+                categoryId,
+                {$set:updateFields},
+                {new:true}
+            )
+            return res.json({categoryAlreadyExist:false})
+            return res.redirect('/admin/category')
+        }
+
+    } catch (error) {
+        
+    }
+}
+
+
+
+
+
+
+
+
 module.exports={
     loadLogin,
     verifyLogin,
@@ -434,8 +490,9 @@ module.exports={
     notActiveCategory,
     ActiveCategory,
     editProductLoad,
-    editProduct
-    
+    editProduct,
+    editCategoryLoad,
+    updateCategory
 
 
 }

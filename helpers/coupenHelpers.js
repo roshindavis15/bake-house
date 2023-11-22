@@ -88,8 +88,7 @@ async function getActiveCoupens(){
         try {
             
             const cart=await Cart.findOne({user_id:userId});
-            console.log("cartforapplyCoupeeenennnn:",cart);
-
+            
             const coupen=await Coupen.findOne({coupenCode})
             
             if(coupen.usageCount >=coupen.usageLimit){
@@ -108,6 +107,7 @@ async function getActiveCoupens(){
 
             // Save the updated user document
             await cart.save();
+            await coupen.save();
 
             return "CouponApplied";
             }
@@ -128,11 +128,12 @@ const getCoupendata=async(userId)=>{
            
             const coupenId=cart.usedCoupens;
             
+            
             let coupenDetails=[];
 
            if(coupenId){
             const coupen= await Coupen.findById(coupenId);
-            console.log("coupen:",coupen);
+            
 
             if(coupen){
                 coupenDetails.push({
@@ -141,22 +142,35 @@ const getCoupendata=async(userId)=>{
                     maxDiscountAmount:coupen.maxDiscountAmount
                 })
             }
+            return coupenDetails;
            }
-           console.log("coupenDetails",coupenDetails);
-    
+           
             
-            
-            return coupenDetails
             
         } catch (error) {
             console.error(error);
             return [];
         }
-
-
     
 }
 
+
+const removingCoupen=async(userId)=>{
+    
+    try {
+        
+    updatedCart=await  Cart.findOneAndUpdate(
+        {user_id:userId},
+        {$unset:{usedCoupens:''}},
+        {new:true}
+    );
+    
+    return "removed";
+    
+    } catch (error) {
+        console.log(error.message);
+    }
+}
 
 
 
@@ -169,5 +183,6 @@ module.exports={
     deactivateCoupen,
     getActiveCoupens,
     applyCoupenToUser,
-    getCoupendata
+    getCoupendata,
+    removingCoupen
 }

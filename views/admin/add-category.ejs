@@ -133,6 +133,7 @@
                       class="form-control validate"
                       required
                     />
+                    <span id="nameError" class="text-danger"></span>
                   </div>
 
 
@@ -171,6 +172,7 @@
                             class="form-control validate"
                             data-large-mode="true"
                           />
+                          <span id="discountError" class="text-danger"></span>
                         </div>
 
 
@@ -180,24 +182,7 @@
                   </div>
                   
               </div>
-              <div class="col-xl-6 col-lg-6 col-md-12 mx-auto mb-4">
-                <div class="tm-product-img-dummy mx-auto">
-                  <i
-                    class="fas fa-cloud-upload-alt tm-upload-icon"
-                    onclick="document.getElementById('fileInput').click();"
-                  ></i>
-                </div>
-
-                <div class="custom-file mt-3 mb-3">
-                  <input id="fileInput" type="file" style="display:none;" name="productImage" />
-                  <input
-                    type="button"
-                    class="btn btn-primary btn-block mx-auto"
-                    value="UPLOAD PRODUCT IMAGE"
-                    onclick="document.getElementById('fileInput').click();"
-                  />
-                </div>
-              </div>
+              
               <div class="col-12">
                 <button type="submit" class="btn btn-primary btn-block text-uppercase">Add Category Now</button>
               </div>
@@ -223,10 +208,70 @@
     <!-- https://jqueryui.com/download/ -->
     <script src="js/bootstrap.min.js"></script>
     <!-- https://getbootstrap.com/ -->
-    <script>
-      $(function() {
-        $("#expire_date").datepicker();
-      });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   
+
+<script>
+document.addEventListener ('DOMContentLoaded',()=>{
+  document.querySelector('form').addEventListener('submit',async(event)=>{
+    event.preventDefault();
+    
+    let categoryName=document.getElementById('name').value.trim();
+    console.log("categoryName:",categoryName);
+    let description=document.getElementById('description').value.trim();
+    let discount=document.getElementById('discount').value.trim();
+    let namePattern=/^[A-Za-z\s]+$/;
+    let nameError=document.getElementById('nameError')
+    if(!namePattern.test(categoryName)){
+            nameError.textContent='Please enter only alphabetic characters for Category Name.'
+            return;
+    }else{
+      nameError.textContent='';
+    }
+    let discountError=document.getElementById('discountError');
+    if(isNaN(discount) || discount<0){
+        discountError.textContent='Please enter only numbers for the Discount.';
+        return;
+    }else{
+        discountError.textContent='';
+    }
+    try {
+      
+      const response=await fetch('/admin/add-category',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({
+          name:categoryName,
+          description:description,
+          discount:discount
+        })
+      })
+
+      const responseData=await response.json();
+     
+
+      if(responseData.categoryAlreadyExist){
+        Swal.fire({
+                    icon: 'error',
+                    title: 'Category Already Exists',
+                    text: 'The category with this name already exists.'
+                });
+      }
+      if(responseData.categoryAlreadyExist==false){
+
+        window.location.href='/admin/category';
+      }
+
+    } catch (error) {
+      console.error('Error:',error)
+    }
+  })
+})
+
+
+
+</script>
   </body>
 </html>

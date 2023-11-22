@@ -146,26 +146,33 @@ async function updateQuantity(userId, productId, newQuantity) {
 
         let product = await Product.findById(productId);
 
-        if (newQuantity > product.stock) {
-            const response = { outOfStock: true, updatedProductStock: product.stock };
-            return response;
-        }
-
         const stockDifference = newQuantity - cartItem.quantity;
 
-        cartItem.quantity = newQuantity;
+        
 
-        if (stockDifference > 0) {
-            product.stock -= stockDifference;
-        } else if (stockDifference < 0) {
-            product.stock += stockDifference;
+        if (stockDifference > product.stock) {
+            const response = { outOfStock: true};
+            return response;
         }
+        
+        product.stock += cartItem.quantity - newQuantity;
 
+        if (newQuantity <= 0) {
+            cartFind.products = cartFind.products.filter(product => !product.productId._id.equals(productId));
+            await cartFind.save();
+            const response = { deleteProduct: true };
+            return response;
+        }
+        
+
+        cartItem.quantity = newQuantity;
+        
+    
         await product.save();
         await cartFind.save();
 
         const updatedProduct = cartFind.products.find(product => product.productId._id.toString() === productId);
-        console.log("updatedProduct:",updatedProduct);
+        
         let updatedProductId = updatedProduct.productId;
         const updatedProductPrice = await Product.findOne({ _id: updatedProductId }).select('price');
         const productPrice = updatedProductPrice.price;
@@ -178,19 +185,19 @@ async function updateQuantity(userId, productId, newQuantity) {
         const categoryDiscountAmount = (updatedProduct.total * categoryOfferPercentage) / 100;
         const productDiscountAmount = (updatedProduct.total * productOfferPercentage) / 100;
         const finalAmount = updatedProduct.total - productDiscountAmount - categoryDiscountAmount;
-        console.log("sub:",finalAmount);
+        
         updatedProduct.subtotal = finalAmount;
 
         //calculate the new cart total
 
-        console.log(cartFind);
+        
         newCartTotal= cartFind.products.reduce((total,product)=>total+product.subtotal,0);
         cartFind.cartTotal=newCartTotal;
         await cartFind.save();
 
         if (updatedProduct.quantity <= 0) {
             cartFind.products = cartFind.products.filter(product => !product.productId._id.equals(productId));
-            console.log(updatedProduct.subtotal);
+            
             await cartFind.save();
             const response = { deleteProduct: true };
             return response;
@@ -242,14 +249,13 @@ async function updateQuantity(userId, productId, newQuantity) {
     }
 }
 
-
 async function removeProductFromCart(userId, productId) {
     try {
        const cart=await Cart.findOne({user_id:userId});
        const productToRemove=cart.products.find(product=>product.productId.toString()===productId);
-       console.log("productToRemove:",productToRemove);
+       
        const removedSubtotal=productToRemove.subtotal;
-        console.log("removedSubtotal:",removedSubtotal);
+        
        //remove the product from the cart
        cart.products=cart.products.filter(product=>product.productId.toString() !== productId)
 
@@ -292,6 +298,7 @@ async function getOrderedProducts(userId){
                         productDescription:productDetails.description,
                         quantity:product.quantity,
                         total:product.total,
+                        image:productDetails.image
                     };
                     orderedProductDetails.push(orderedProductDetail);
                 }
@@ -306,10 +313,54 @@ async function getOrderedProducts(userId){
     }
 }
 
+
+async function clearCart(userId){
+
+    try {
+        
+       await Cart.findOneAndDelete({user_id:userId})
+
+    } catch (error) {
+        console.error("error")
+    }
+}
+
+async function saveTotalPay(userId,totalToPay){
+
+    try {
+        cart=await Cart.findOne({user_id:userId});
+
+        if(cart){
+              
+            cart.totalToPay=totalToPay;
+            await cart.save();
+            
+            return cart.totalToPay;
+            
+        }
+    } catch (error) {
+        console.error("error")
+    }
+}
+
+async function getTotalToPay(userId){
+    try {
+        cart= await Cart.findOne({user_id:userId});
+        if(cart){
+            return cart.totalToPay;
+        }
+    } catch (error) {
+        console.error("error")
+    }
+}
+
 module.exports = {
     addToCart,
     loadCart,
     updateQuantity,
     removeProductFromCart,
-    getOrderedProducts
+    getOrderedProducts,
+    clearCart,
+    saveTotalPay,
+    getTotalToPay
 }

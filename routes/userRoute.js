@@ -86,11 +86,20 @@ user_route.get('/checkout',auth.isLogin,userController.checkoutLoad)
 
 user_route.post('/addAddressInCheckout',auth.isLogin,userController.addAddressInCheckout)
 
+user_route.post('/applyCoupen',auth.isLogin,coupenController.applyingCoupen);
+
+user_route.post('/removeCoupen',auth.isLogin,coupenController.removeCoupenByUSer)
+
 user_route.post('/place-order',auth.isLogin,userController.orderPlacing);
 
 user_route.get('/orderSuccess',auth.isLogin,userController.orderSucccessLoad);
 
-user_route.post('/applyCoupen',auth.isLogin,coupenController.applyingCoupen);
+user_route.get('/orderSummary',auth.isLogin,userController. orderSummaryDetails);
+
+user_route.get('/orderSummaryPage',auth.isLogin,userController.orderSummaryPageLoad);
+
+
+
 
 
 

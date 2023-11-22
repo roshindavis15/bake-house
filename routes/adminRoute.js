@@ -69,7 +69,9 @@ admin_route.get('/productIndex',adminAuth.isLogin,adminController.productManagem
 admin_route.get('/category',adminAuth.isLogin,adminController.categoryManagement);
 
 admin_route.get('/add-category',adminAuth.isLogin,adminController.categoryLoad)
-admin_route.post('/add-category',adminAuth.isLogin,upload.single('categoryImage'),adminController.addCategory)
+admin_route.post('/add-category',adminAuth.isLogin,adminController.addCategory)
+admin_route.get('/edit-category',adminAuth.isLogin,adminController.editCategoryLoad)
+admin_route.post('/updateCategory',adminAuth.isLogin,adminController.updateCategory)
 admin_route.get('/add-product',adminAuth.isLogin,adminController.loadProduct);
 admin_route.post('/add-product',adminAuth.isLogin,upload.array('productImage'),adminController.addProduct);
 

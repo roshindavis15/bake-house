@@ -57,6 +57,9 @@ const ordersSchema = new mongoose.Schema({
       total:{
         type:Number,
         default:0
+      },
+      image:{
+        type:Array
       }
     }
   ],
@@ -100,6 +103,10 @@ const ordersSchema = new mongoose.Schema({
   deliveryStatus:{
     type:String,
     default:'Pending'
+  },
+  totalToPay:{
+    type:Number,
+    default:0
   }
 
 })

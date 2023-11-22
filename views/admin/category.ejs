@@ -50,7 +50,7 @@
                 <a href="/admin/isActive?cid=<%= categories[i]._id %>" class="btn btn-primary">Active</a>
                 <% } %>
 
-              <a href="/category/edit-category?id=" class="btn btn-info">Edit</a>
+              <a href="/admin/edit-category?cid=<%=categories[i]._id %>" class="btn btn-info">Edit</a>
                     
           
           </td>
@@ -88,5 +88,17 @@
    <!--Start Back To Top Button-->
     <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
     <!--End Back To Top Button-->
+
+    <style>
+       .content-wrapper{
+    margin-left: 129px;
+    padding-top: 50px;
+    padding-left: 7px;
+    padding-right: 10px;
+    padding-bottom: 70px;
+    overflow-x: hidden;
+
+  }
+    </style>
 	
     <%- include('../layouts/admin/adminFooter') %>

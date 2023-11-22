@@ -5,6 +5,7 @@ const userHelper = require('../helpers/userHelpers')
 const cartHelper= require('../helpers/cartHelpers');
 const coupenHelper=require('../helpers/coupenHelpers');
 const addressHelper= require('../helpers/addressHelper')
+const orderHelper=require('../helpers/orderHelper')
 const Product=require("../models/productsModel");
 const Category=require('../models/categoryModel');
 const Address=require('../models/addressModel');
@@ -133,7 +134,14 @@ const loadLogin = async (req, res) => {
 
 const homeLoad=async(req,res)=>{
     try {
-        res.render('home')
+
+        const productData= await Product.find({unlist:false});
+        console.log("productData to frontend:",productData);
+        
+        const categoryData= await Category.find({IsActive:false});
+        console.log("categoryData to frontend:",categoryData);
+
+        res.render('home',{product:productData,category:categoryData,user:req.session.user_id})
     } catch (error) {
         console.log(error.message);
     }
@@ -193,6 +201,7 @@ const loadHome = async (req, res) => {
     try {
         const userData = await User.findById({ _id: req.session.user_id });
         
+        
         res.render('home', { user: userData});
         
     } catch (error) {
@@ -204,8 +213,20 @@ const loadHome = async (req, res) => {
 const shopLoad=async(req,res) =>{
     try {
         const productData= await Product.find({unlist:false});
+        console.log("productData to frontend:",productData);
         
         const categoryData= await Category.find({IsActive:false});
+        console.log("categoryData to frontend:",categoryData);
+
+        // Create an object to map products to categories
+        const productsByCategory = {};
+
+        categoryData.forEach((category) => {
+            productsByCategory[category.Name] =  productData.filter((product) =>
+                product.category.equals(category._id)
+            );
+        });
+        console.log("productsByCategory:",productsByCategory);
 
         res.render('shop',{product:productData,category:categoryData,user:req.session.user_id});
     } catch (error) {
@@ -256,8 +277,20 @@ const addToCart = async (req, res) => {
 
     const loadCart = async (req, res) => {
     try {
-        const result = await cartHelper.loadCart(req.session.user_id);
+        const userId=req.session.user_id
+        const result = await cartHelper.loadCart(userId);
         const activeCoupens= await coupenHelper.getActiveCoupens()
+        const appliedCoupenData=await coupenHelper.getCoupendata(userId);
+        console.log("appliedCoupenData:",appliedCoupenData);
+        let appliedCoupenCode=''; 
+
+        if (Array.isArray(appliedCoupenData) && appliedCoupenData.length > 0) {
+            appliedCoupenCode = appliedCoupenData[0].coupenCode;
+        }
+        
+        console.log("appliedCoupenCodeeeeeeeeeeee:",appliedCoupenCode);
+    
+
         
          if (result.message) {
             res.render('cart', { message: result.message });
@@ -268,8 +301,9 @@ const addToCart = async (req, res) => {
                 totalCount: result.totalCount,
                 subTotal: result.subTotal,
                 totalAmount: result.totalAmount,
-                user: req.session.user_id,
-                activeCoupens:activeCoupens
+                user: userId,
+                activeCoupens:activeCoupens,
+                appliedCoupenCode
             });
         }
     } catch (error) {
@@ -283,6 +317,7 @@ const updateQuantity = async (req, res) => {
         const userId = req.session.user_id;
         const productId = req.query.productId;
         const newQuantity = req.query.quantity;
+        console.log("newQuantity:",newQuantity);
 
         const result = await cartHelper.updateQuantity(userId, productId, newQuantity);
 
@@ -339,6 +374,8 @@ const checkoutLoad = async (req, res) => {
        // Add the totalToPay to the checkoutData
 
        checkoutData.totalToPay = totalToPay;
+       
+       savingTotalToPayToCart= await cartHelper.saveTotalPay(userId,totalToPay);
 
         res.render('checkout', checkoutData);
 
@@ -377,14 +414,19 @@ const orderPlacing = async(req,res)=>{
         const appliedCoupenDetails=await coupenHelper.getCoupendata(userId);
         let coupenCode=0;
         let discount=0;
-        if(appliedCoupenDetails){
-             coupenCode= appliedCoupenDetails[0].coupenCode;
-             discount=  appliedCoupenDetails[0].discount;
+        if (appliedCoupenDetails && appliedCoupenDetails.length > 0) {
+
+            coupenCode = appliedCoupenDetails[0].coupenCode;
+
+            discount = appliedCoupenDetails[0].discount;
         }
+        
        
         console.log("appliedCoupenDetailsssssssss:",appliedCoupenDetails);
         
         const addressDetails= await addressHelper.getDefaultAddress(userId)
+
+        const totalToPay=await cartHelper.getTotalToPay(userId);
         console.log("addressDetails:",addressDetails);
 
         const order= new  Order({
@@ -395,13 +437,21 @@ const orderPlacing = async(req,res)=>{
             coupenDiscount:discount,
             offerDiscount:totalOfferDiscount,
             products:orderedProductDetails,
-            addressDetails:addressDetails
+            addressDetails:addressDetails,
+            totalToPay:totalToPay
             
         })
         
-        await order.save();
-        console.log("orddeerrrr:");
-        res.json({success:true,message:"Order Placed Successfully"})
+        const saveOrder=await order.save();
+
+        const orderId=saveOrder._id;
+         
+        console.log("orderrrrrrrrrrrrr:",order);
+        //clear the user's cart after place order
+
+        await cartHelper.clearCart(userId);
+
+        res.json({success:true,orderId:orderId,message:"Order Placed Successfully"})
         
     
     } catch (error) {
@@ -411,8 +461,40 @@ const orderPlacing = async(req,res)=>{
 
 const orderSucccessLoad=async(req,res)=>{
 
-    res.render('order-success')
+    const orderId=req.query.orderId
+
+    res.render('order-success',{orderId});
 }
+
+const orderSummaryDetails=async(req,res)=>{
+    
+    orderId=req.query.orderId;
+    
+    let orderSummaryData= await orderHelper.orderSummaryData(orderId);
+
+        orderSummaryData.orderId=orderId;
+    
+    
+    
+    res.json(orderSummaryData);
+}
+
+const orderSummaryPageLoad=async(req,res)=>{
+
+    const encodedData=req.query.data;
+
+    
+    const decodedData=decodeURIComponent(encodedData);
+
+    const orderSummaryData=JSON.parse(decodedData);
+
+    console.log("orderSummaryDataaaaaaaaaaaaaaaaaaa:",orderSummaryData);
+
+    res.render('orderSummary',{orderSummaryData:orderSummaryData});
+
+
+}
+
    
 const userLogout=async(req,res)=>{
     try {
@@ -426,6 +508,7 @@ const userLogout=async(req,res)=>{
         console.log(error.message);
     }
 }
+
 
 //forget passord code start
 
@@ -692,6 +775,8 @@ const setasDefault = async (req, res) => {
         const addressId = req.query.id;
         const sessionUserId = req.session.user_id;
 
+        console.log("reached here");
+
         // Find the current default address and update it
         const currentDefaultAddress = await Address.findOne({ user_id: sessionUserId, 'address.0.isDefault': true });
         if (currentDefaultAddress) {
@@ -717,10 +802,9 @@ const setasDefault = async (req, res) => {
         }
     } catch (error) {
         console.log(error.message);
-        return res.status(500).json({ error: error.message }); // Properly handle errors with a status code
+        return res.status(500).json({ error: error.message }); 
     }
 }
-
 
     
 
@@ -759,7 +843,9 @@ module.exports={
     checkoutLoad,
     addAddressInCheckout,
     orderPlacing,
-    orderSucccessLoad
+    orderSucccessLoad,
+    orderSummaryDetails,
+    orderSummaryPageLoad
 
     
 }

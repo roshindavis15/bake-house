@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="Aspose.Words for .NET 23.10.0" />
+  <title>Order Summary</title>
+
+
+  <style>
+    body {
+      
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .order-summary {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .card {
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-content {
+      padding: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    p {
+      margin: 0;
+      font-weight: bold;
+    }
+
+    .order-details .card-content:last-child {
+      border-bottom: none;
+    }
+
+    .order-id span, .order-date span {
+      display: block;
+    }
+
+    .contact span:nth-child(odd) {
+      font-weight: bold;
+    }
+
+    .product-details {
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+
+    .product-details div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .product-details img {
+      max-width: 60px;
+      max-height: 60px;
+      margin-right: 15px;
+      border-radius: 8px;
+    }
+
+    .total {
+      margin-top: 20px;
+      text-align: right;
+      font-size: 20px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    /* Style for values from the backend */
+    .backend-value {
+      font-weight: normal;
+    }
+  </style>
+
+</head>
+<body>
+  <div class="order-summary">
+    <h1>Order Summary</h1>
+
+    <div class="card order-details">
+      <div class="card-content">
+        <p><span>Order ID:</span> <span class="backend-value"><%= orderSummaryData.orderId %></span></p>
+        <p><span>Date:</span> <span class="backend-value"><%= orderSummaryData.orderedDate %></span></p>
+      </div>
+
+      <div class="card-content">
+        <p><span>Shipping Address:</span> <span class="backend-value"><%=orderSummaryData.address.homeAddress %>, <%=orderSummaryData.address.place %>, <%=orderSummaryData.address.pincode %></span></p>
+      </div>
+
+      <div class="card-content">
+        <p><span>Name:</span> <span class="backend-value"><%= orderSummaryData.address.name %></span></p>
+        <p><span>Phone:</span> <span class="backend-value"><%= orderSummaryData.address.mobile %></span></p>
+      </div>
+
+      <div class="card-content">
+        <p><span>Offer Discount:</span> <span class="backend-value">₹<%= orderSummaryData.offerDiscount %></span></p>
+        <p><span>Coupon Discount:</span> <span class="backend-value">₹<%= orderSummaryData.coupenDiscount %></span></p>
+      </div>
+    </div>
+
+    <div class="card product-details">
+      <h3>Products</h3>
+      <% orderSummaryData.orderedProducts.forEach(product => { %>
+        <div>
+          <img src="/frutika-master/uploads/<%= product.image[0] %>" alt="">
+          <span><%= product.productName %></span>
+          <span class="quantity">* <%= product.quantity %></span>
+        </div>
+      <% }); %>
+    </div>
+
+    <div class="card total">
+      <p><strong>Total to Pay:</strong> ₹<%= orderSummaryData.getTotalToPay %></p>
+    </div>
+  </div>
+</body>
+</html>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Add Product - Dashboard HTML Template</title>
+    <title>Add Product</title>
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css?family=Roboto:400,700"
@@ -251,7 +251,8 @@
                 </div>
               </div>
               <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-block text-uppercase productAddBtn">Add Product Now</button>
+                <button type="submit" class="btn btn-primary btn-block text-uppercase  productAddBtn" onclick="checkProductAndsubmit(event)">Add Product Now</button>
+
               </div>
             </form>
            
@@ -287,29 +288,70 @@
 
 <script>
  var productAddBtn = document.querySelector('.productAddBtn');
+
+ console.log("productAddBtn :",productAddBtn );
+ 
 productAddBtn.addEventListener('click', checkProductAndsubmit);
 
 function checkProductAndsubmit(e) {
     e.preventDefault();
 
-    var stockInput = document.getElementById('stock');
-    if (stockInput.value < 0) {
+    var stockInput = document.getElementById('stock').value;
+    var priceInput=document.getElementById('price').value;
+    var offerInput=document.getElementById('offer').value;  
+    var productName = document.getElementById('name').value;
+    var fileInput=document.getElementById('fileInput').files[0];
+
+    if(
+      productName.trim()==='' ||
+      priceInput.trim()===''||
+      offerInput.trim()===''||
+      !fileInput
+    ){
+      Swal.fire({
+        icon:'error',
+        title:'Invalid Input',
+        text: 'Please fill in all fields',
+      })
+      return;
+    }
+
+    if (isNaN(stockInput) || isNaN(priceInput) || isNaN(offerInput)) {
         Swal.fire({
             icon: 'error',
-            title: 'Invalid Stock Value',
-            text: 'Stock value cannot be negative. Please enter a valid value.',
+            title: 'Invalid Value',
+            text: 'Please enter a valid number for Price, Units in Stock, and Offer.',
+        });
+        return; 
+    }
+    
+    if (stockInput < 0 || priceInput < 0 || offerInput < 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid  Value',
+            text: ' values cannot be negative. Please enter a valid value.',
         });
         return; 
     }
 
-    var productName = document.getElementById('name').value;
+    
 
     fetch('/admin/add-product', {
         method: 'POST',
         body: new FormData(document.getElementById('add-product-form')),
     })
+    
     .then(response => response.json())
+    
     .then(data => {
+
+      if(data.fileType==false){
+        Swal.fire({
+                icon: 'error',
+                title: 'File type not Accepted',
+                text: 'image file Type not acceptable!',
+            });
+      }
         if (data.success) {
             Swal.fire({
                 icon: 'success',
