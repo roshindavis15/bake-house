@@ -98,6 +98,8 @@ user_route.get('/orderSummary',auth.isLogin,userController. orderSummaryDetails)
 
 user_route.get('/orderSummaryPage',auth.isLogin,userController.orderSummaryPageLoad);
 
+user_route.get('/orders',auth.isLogin,userController.viewOrders);
+
 
 
 

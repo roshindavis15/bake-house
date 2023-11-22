@@ -495,6 +495,22 @@ const orderSummaryPageLoad=async(req,res)=>{
 
 }
 
+const viewOrders=async(req,res)=>{
+    try {
+        const userId=req.session.user_id;
+        const orderData=await orderHelper.getOrderDataOfUser(userId);
+        
+        if(orderdata && orderData.length >0){
+
+            res.render('orderList', { orders: orderData });
+        }else{
+            res.render('orderList',{});
+        }
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
    
 const userLogout=async(req,res)=>{
     try {
@@ -806,6 +822,7 @@ const setasDefault = async (req, res) => {
     }
 }
 
+
     
 
     
@@ -845,7 +862,8 @@ module.exports={
     orderPlacing,
     orderSucccessLoad,
     orderSummaryDetails,
-    orderSummaryPageLoad
+    orderSummaryPageLoad,
+    viewOrders
 
     
 }

@@ -27,22 +27,48 @@ const orderSummaryData= async(orderId)=>{
             getTotalToPay,
             deliveryStatus,
             orderedProducts,
-            
-
-
         }
         return orderSummary
-
-
 
     } catch (error) {
         console.error("error")
     }
 }
 
+const getOrderDataOfUser=async(userId)=>{
+    try {
+        const getOrderList=await Order.find({userId:userId});
+  
+        if(getOrderList){
+
+            const orderList=getOrderList.map(order=>({
+                date:order.date,
+                orderId:order._id,
+                total:order.totalToPay,
+                paymentMethod:order.paymentMethod,
+                status:order.deliveryStatus
+            }))
+            return orderList;
+
+        }else{
+        
+            return "no orderes"
+    }
+ }
+  catch (error) {
+        console.error(error);
+
+        throw error;
+    }
+}
+
+
+
+
 
 
 module.exports={
 
-    orderSummaryData
+    orderSummaryData,
+    getOrderDataOfUser
 }
