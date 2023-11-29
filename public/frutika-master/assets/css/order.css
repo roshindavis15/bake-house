@@ -1,5 +1,4 @@
-/* Your CSS styles for the page can be added here */
-	/* Example styles for the order success page */
+
 	body {
 		font-family: Arial, sans-serif;
 		background-color: #f2f2f2;
@@ -12,6 +11,9 @@
 		border-radius: 5px;
 		box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 		text-align: center;
+		margin-top: 250px;
+		margin-bottom: 250px;
+		
 	}
 	.order-confirmation h1 {
 		color: #333;

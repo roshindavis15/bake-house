@@ -88,10 +88,17 @@ admin_route.get('/notActive',adminAuth.isLogin,adminController.notActiveCategory
 admin_route.get('/isActive',adminAuth.isLogin,adminController.ActiveCategory);
 
 admin_route.get('/CoupenManagment',adminAuth.isLogin,coupenController.coupenManagementLoad);
+admin_route.get('/orderMaanagment',adminAuth.isLogin,adminController.orderManagmentLoad);
 admin_route.get('/add-coupen',adminAuth.isLogin,coupenController.addCoupenLoad);
 admin_route.post('/addCoupen',adminAuth.isLogin,coupenController.addCoupen);
 admin_route.get('/activeCoupen',adminAuth.isLogin,coupenController.activatingCoupen);
 admin_route.get('/notActiveCoupen',adminAuth.isLogin,coupenController.deactivatingCoupen);
+admin_route.post('/setasPreparing',adminAuth.isLogin,adminController.setasPreparing);
+admin_route.get('/viewOrderDetails/:orderId', adminAuth.isLogin, adminController.viewOrderDetails);
+admin_route.post('/acceptCancellation', adminAuth.isLogin, adminController.orderCanceling);
+admin_route.post('/rejectCancellation',adminAuth.isLogin,adminController.rejectCancellation);
+admin_route.post('/updateOrderStatus',adminAuth.isLogin,adminController.updateOrderStatus);
+
 
 
 

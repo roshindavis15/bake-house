@@ -6,11 +6,20 @@ const Product=require('../models/productsModel');
 const Category=require('../models/categoryModel')
 const Cart=require('../models/cartModel');
 const Coupen=require('../models/coupenModel');
+const Order=require('../models/orderModel');
 const nodemailer = require('nodemailer')
 const config = require('../config/config')
 const otpGenerator= require('otp-generator');
+const Razorpay=require('razorpay')
+const crypto=require('crypto');
 
  let otpStorage={};
+
+ var instance= new Razorpay({
+    key_id:'rzp_test_actyaWU6qykYib',
+    key_secret:'y4MeoInYyOUAHit056qb9YI1'
+
+ })
 
 
 const securedPassword= async(password)=>{
@@ -132,6 +141,42 @@ const userAddress= (addressDatas,res,userId)=>{
   
 }
 
+const verifyPayment = (details) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const hmac = crypto.createHmac('sha256', 'y4MeoInYyOUAHit056qb9YI1');
+            const text = details.paymentDetails.razorpay_order_id + '|' + details.paymentDetails.razorpay_payment_id;
+            hmac.update(text);
+            const calculatedSignature = hmac.digest('hex');
+
+            if (calculatedSignature === details.paymentDetails.razorpay_signature) {
+                resolve(); // Signature matched, payment verified
+            } else {
+                reject(new Error('Invalid signature')); // Signature mismatch, payment verification failed
+            }
+        } catch (error) {
+            reject(error); 
+        }
+    });
+};
+
+const changePaymentStatus = async (orderId, userId) => {
+    try {
+        let order = await Order.findOne({ userId: userId });
+        if (order) {
+            await Order.findByIdAndUpdate(orderId, { deliveryStatus: "Placed" });
+            return { status: "Delivery status updated successfully." };
+        } else {
+            return { error: "Order not found." };
+        }
+    } catch (error) {
+        console.error('Error updating delivery status:', error);
+        throw new Error("Failed to update delivery status.");
+    }
+};
+
+
+
 
 async function getSingleProduct(productId) {
     try {
@@ -191,6 +236,27 @@ async function getCheckoutData(userId) {
     }
 }
 
+async function generateRazorpay(orderId, total) {
+    try {
+        const options = {
+            amount: total*100,
+            currency: "INR",
+            receipt: orderId
+        };
+
+        return new Promise((resolve, reject) => {
+            instance.orders.create(options, function (err, order) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(order);
+                }
+            });
+        });
+    } catch (error) {
+        throw error;
+    }
+}
 
 
 module.exports ={
@@ -201,6 +267,9 @@ module.exports ={
     userAddress,
     getSingleProduct,
     getCategoryById,
-    getCheckoutData
+    getCheckoutData,
+    generateRazorpay,
+    verifyPayment,
+    changePaymentStatus
 
 }

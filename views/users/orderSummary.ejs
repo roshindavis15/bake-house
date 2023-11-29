@@ -135,6 +135,32 @@
     <div class="card total">
       <p><strong>Total to Pay:</strong> ₹<%= orderSummaryData.getTotalToPay %></p>
     </div>
+
+    <div class="card cancel-request mt-4">
+      <div class="card-header">
+          <h3 class="mb-0">Cancel Order</h3>
+      </div>
+      <div class="card-body">
+        <% if (orderSummaryData.cancellationStatus === 'Requested') { %>
+          <p>Cancellation is requested for this order.</p>
+      <% } else if (orderSummaryData.cancellationStatus === 'Cancelled') { %>
+          <p>Your order has been cancelled.</p>
+      <% } else { %>
+          <form action="/cancelOrderRequest/<%= orderSummaryData.orderId %>" method="POST">
+              <div class="form-group">
+                  <label for="cancelReason">Reason for cancellation:</label>
+                  <textarea class="form-control" id="cancelReason" name="cancelReason" rows="4" placeholder="Enter reason for cancellation..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-danger">Send Cancel Request</button>
+          </form>
+      <% } %>
+
+      
+      </div>
+  </div>
+  
+  
+  
   </div>
 </body>
 </html>

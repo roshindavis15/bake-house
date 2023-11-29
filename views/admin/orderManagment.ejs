@@ -1,90 +1,69 @@
 <%-include('../layouts/admin/adminSidebar')%>
 
-
-  <div class="clearfix"></div>
+<div class="clearfix"></div>
   <div class="content-wrapper">
     <div class="container-fluid">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Coupen Data</h5>
+            <h5 class="card-title">Order</h5>
             <div class="table-responsive mt-4">
 
-              <a href="/admin/add-coupen" class="btn btn-primary ">Add New Coupen</a>
+              
               <table class="table mt-5">
                 <thead>
                   <tr>
                     <th scope="col">#</th>
-                    <th scope="col">Coupen Code</th>
-                    <th scope="col">Discount</th>
-                    <th scope="col">Count</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Total</th>
 
-                    <th scope="col">Expire Days</th>
-                    <th scope="col">Description</th>
-
+                    <th scope="col">Payment Method</th>
                     <th scope="col">Status</th>
-                    <th scope="col" style="text-align: center;">Actions</th>
+                    <th scope="col" style="text-align: center;">Orders</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <% if(coupens.length> 0) {
+                  <% if(orders.length> 0) {
 
-                    for(let i=0; i<coupens.length; i++) { %>
-                      <tr>
+                    for(let i=0; i<orders.length; i++) { %>
+                        <tr>
                         <th scope="row">
                           <%= i+1 %>
                         </th>
                         <td>
-                          <%= coupens[i].coupenCode %>
+                          <%= orders[i].name%>
                         </td>
                         <td>
-                          <%= coupens[i].discount%>
+                          <%= orders[i].date%>
                         </td>
 
                         <td>
-                          <%= coupens[i].usageCount %>
+                          <%= orders[i].total %>
                         </td>
                         <td>
-                          <%= coupens[i].validFor %>
+                          <%= orders[i].paymentMethod%>
                         </td>
                         <td>
-                          <%= coupens[i].description %>
+                          <%= orders[i].status %>
                         </td>
-
-
-
-
-
-
-                        <!-- list|| Unlist -->
+                         
                         <td>
-                          <% if(coupens[i].activeCoupen===true) { %>
-                            <p style="color: green; font-weight: bold;">Active</p>
-                            <% } else { %>
-                              <p style="color: red; font-weight: bold;">Not Active</p>
-                              <% } %>
-                        </td>
-
-
-
-
-
-                        <td>
-                          <% if(coupens[i].activeCoupen===false) { %>
-                            <a href="/admin/activeCoupen?cid=<%=coupens[i]._id%>" class="btn btn-danger">Active</a>
-                            <% } else { %>
-                              <a href="/admin/notActiveCoupen?cid=<%=coupens[i]._id%>" class="btn btn-primary">Not
-                                Active</a>
-                              <% } %>
-
-                                <a href="/admin/" class="btn btn-info">Edit</a>
-                        </td>
+                          <form action="/admin/viewOrderDetails/<%= orders[i].orderId %>" method="get">
+                            <button type="submit" style="padding: 5px 10px; font-size: 12px;">View</button>
+                        </form>
+                        
+                        
 
                         </td>
+                         
+                        
+
+                        
                       </tr>
                       <% } } else { %>
                         <tr>
-                          <td colspan="6" class="text-center">Coupens Not Found</td>
+                          <td colspan="6" class="text-center">No orders</td>
                         </tr>
                         <% } %>
                 </tbody>
@@ -121,5 +100,7 @@
 
     }
   </style>
+
+
 
   <%- include('../layouts/admin/adminFooter') %>

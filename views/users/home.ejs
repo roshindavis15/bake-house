@@ -29,7 +29,7 @@
 						
 						<h1 >Delicious Home Made Cakes</h1>
 						<div class="hero-btns">
-							<a href="" class="boxed-btn">Fruit Collection</a>
+							<a href="" class="boxed-btn">Cake Collection</a>
 							<a href="contact.html" class="bordered-btn">Contact Us</a>
 						</div>
 					</div>
@@ -96,38 +96,25 @@
 			</div>
 		</div>
 
+		<%if(product.length>0){%>
 		<div class="row">
-			<div class="col-lg-4 col-md-6 text-center">
-				<div class="single-product-item">
-					<div class="product-image">
-						<a href="single-product.html"><img src="/frutika-master/assets/img/products/product-img-1.jpg" alt=""></a>
+			<% for(i=0;i<product.length;i++){%>
+			
+				<div class="col-lg-4 col-md-6 text-center <%= product[i].category %>">
+					<div class="single-product-item">
+						<div class="product-image">
+							<a href="/singleProduct?pid=<%=product[i]._id %>"><img src="/frutika-master/uploads/<%=product[i].image[0] %>" alt="" style="width: 200px; height: 200px;"></a>
+						</div>
+						<h3><%=product[i].name%></h3>
+						<p class="product-price"><span>Per Kg</span><%=product[i].price%> </p>
+						<a href="/shop" class="cart-btn"><i class="fas fa-shopping-cart"></i>Expore Our Cakes</a>
 					</div>
-					<h3>Strawberry</h3>
-					<p class="product-price"><span>Per Kg</span> 85$ </p>
-					<a href="cart.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
 				</div>
-			</div>
-			<div class="col-lg-4 col-md-6 text-center">
-				<div class="single-product-item">
-					<div class="product-image">
-						<a href="single-product.html"><img src="/frutika-master/assets/img/products/product-img-2.jpg" alt=""></a>
-					</div>
-					<h3>Berry</h3>
-					<p class="product-price"><span>Per Kg</span> 70$ </p>
-					<a href="cart.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
-				</div>
-			</div>
-			<div class="col-lg-4 col-md-6 offset-md-3 offset-lg-0 text-center">
-				<div class="single-product-item">
-					<div class="product-image">
-						<a href="single-product.html"><img src="/frutika-master/assets/img/products/product-img-3.jpeg" alt=""></a>
-					</div>
-					<h3>Lemon</h3>
-					<p class="product-price"><span>Per Kg</span> 35$ </p>
-					<a href="cart.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
-				</div>
-			</div>
+				<%}%>
+			
 		</div>
+		<%}%>
+
 	</div>
 </div>
 <!-- end product section -->
@@ -344,4 +331,31 @@
 	</div>
 </div>
 <!-- end logo carousel -->
+
+
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+	  const productLinks = document.querySelectorAll('.single-product-item a[href^="/singleProduct"]');
+	  
+	  productLinks.forEach(link => {
+		link.addEventListener('click', function(event) {
+		  event.preventDefault();
+		  
+		  // Check if userId exists and is not 'undefined'
+		  const userId = '<%= user %>';
+		  if (!userId || userId === 'undefined') {
+			Swal.fire({
+			  icon: 'error',
+			  title: 'Login required',
+			  text: 'Please login to explore Bake House'
+			});
+		  } else {
+			// User is logged in, redirect to the product page
+			window.location.href = this.getAttribute('href');
+		  }
+		});
+	  });
+	});
+  </script>
+  
 <%- include('../layouts/footer')%> 	

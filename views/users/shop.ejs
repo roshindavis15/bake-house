@@ -36,7 +36,8 @@
                         <ul>
 							<li class="active" data-filter="*">All</li>
 							<% for(i=0;i<category.length;i++){ %>
-                            <li class="active" data-filter="<%= category[i].Name %>"><%= category[i].Name %></li>
+                            <li class="active"  data-category-id="<%= category[i]._id %>" data-filter="<%= category[i]._id %>"><%= category[i].Name %></li>
+							<% console.log('data-filter',category[i]._id) %>
 							<% } %>
                            
                         </ul>
@@ -113,6 +114,37 @@
 		</div>
 	</div>
 	<!-- end logo carousel -->
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<script>
+		document.querySelectorAll('li[data-filter]').forEach(category => {
+    category.addEventListener('click', function() {
+        var categoryId = this.getAttribute('data-category-id');
+        console.log("categoryId:", categoryId);
+
+        
+
+        fetch(`/productsByCategory?categoryId=${categoryId}`, {
+            method: 'GET'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data.filteredProducts); 
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    });
+});
+
+
+	</script>
 
 	
 	

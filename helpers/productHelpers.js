@@ -70,9 +70,25 @@ const addCategory=(categoryDatas)=>{
 
     })
 }
+
+
+const getFilteredProducts=async(categoryId)=>{
+    try {
+        let filteredProducts= await Product.find({category:categoryId});
+        if(filteredProducts){
+            return filteredProducts
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
+
 module.exports={
     addProduct,
-    addCategory
+    addCategory,
+    getFilteredProducts
 };
 
         

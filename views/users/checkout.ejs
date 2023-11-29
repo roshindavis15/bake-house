@@ -117,7 +117,7 @@
 										<td><%=cartTotal%></td>
 
 									</tr>
-									<% if(coupenData !='undefined' && coupenData.length>0){%>
+									<% if(typeof coupenData !='undefined' && coupenData.length>0){%>
                                         <%for(i=0;i<coupenData.length;i++){%>
 										<tr>
 											<td><%=coupenData[i].coupenCode%></td>
@@ -204,7 +204,7 @@
 			})
 			.then(response => response.json()) 
 			.then(data => {
-                
+                console.log("dataaaaaaaaaaaaaaa:",data);
 				if(data.success){
 					console.log("Response from the server:", data.message);
 
@@ -213,7 +213,10 @@
 					window.location.href = '/orderSuccess?orderId='+orderId; 
                     
 				} else{
-					console.error('Error:', data.message);
+					console.log("response reached here..");
+					
+					
+					razorpayPayment(data)
 				}
 				
 				
@@ -223,12 +226,69 @@
 				console.error('Error:', error);
 			});
 		});
+        function razorpayPayment(order){
+			var options = {
+    "key": "rzp_test_actyaWU6qykYib", // Enter the Key ID generated from the Dashboard
+    "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+    "currency": "INR",
+    "name": "Bake House",
+    "description": "Test Transaction",
+    "image": "https://example.com/your_logo",
+    "order_id": order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
+    "handler": function (response){
+        
+
+		verifyPayment(response,order)
+    },
+    "prefill": {
+        "name": "Gaurav Kumar",
+        "email": "gaurav.kumar@example.com",
+        "contact": "9000090000"
+    },
+    "notes": {
+        "address": "Razorpay Corporate Office"
+    },
+    "theme": {
+        "color": "#3399cc"
+    }
+};
+    var rzp1 = new Razorpay(options);
+	rzp1.open();
+		}
+
+function verifyPayment(payment,order){
+	
+	const response= fetch('/verify-payment',{
+		method:'POST',
+		headers:{
+			'Content-Type':'application/json',
+		},
+		body:JSON.stringify({
+			paymentDetails:payment,
+			orderDetails:order
+		})
+	})
+	.then(response=>response.json())
+	.then(data=>{
+		if(data.status===true){
+			const orderId = data.orderId;
+			window.location.href = '/orderSuccess?orderId=' + orderId;
+		}else{
+			console.error("Order failed:", data);
+		}
+	})
+	
+}
+
+
+
 
 		changeAddressButton.addEventListener('click',function(event){
 			event.preventDefault();
 			window.location.href = '/addressManagement';
 		})
 	});
+
 </script>
 
 

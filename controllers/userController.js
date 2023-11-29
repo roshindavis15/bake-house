@@ -1,29 +1,30 @@
 const mongoose = require('mongoose')
-let User=require('../models/userModel');
-const bcrypt= require('bcrypt');
+let User = require('../models/userModel');
+const bcrypt = require('bcrypt');
 const userHelper = require('../helpers/userHelpers')
-const cartHelper= require('../helpers/cartHelpers');
-const coupenHelper=require('../helpers/coupenHelpers');
-const addressHelper= require('../helpers/addressHelper')
-const orderHelper=require('../helpers/orderHelper')
-const Product=require("../models/productsModel");
-const Category=require('../models/categoryModel');
-const Address=require('../models/addressModel');
-const Cart= require('../models/cartModel');
-const Order=require('../models/orderModel')
-const nodemailer=require('nodemailer');
-const config=require("../config/config");
-const randomstring= require('randomstring')
-const otpGenerator= require('otp-generator');
+const cartHelper = require('../helpers/cartHelpers');
+const coupenHelper = require('../helpers/coupenHelpers');
+const addressHelper = require('../helpers/addressHelper')
+const orderHelper = require('../helpers/orderHelper')
+const ProductHelper = require('../helpers/productHelpers');
+const Product = require("../models/productsModel");
+const Category = require('../models/categoryModel');
+const Address = require('../models/addressModel');
+const Cart = require('../models/cartModel');
+const Order = require('../models/orderModel')
+const nodemailer = require('nodemailer');
+const config = require("../config/config");
+const randomstring = require('randomstring')
+const otpGenerator = require('otp-generator');
 
 
 
 
-const securedPassword= async(password)=>{
+const securedPassword = async (password) => {
 
     try {
-        
-        const passwordHash=await bcrypt.hash(password,10);
+
+        const passwordHash = await bcrypt.hash(password, 10);
         return passwordHash;
     } catch (error) {
         console.log(error.message);
@@ -32,35 +33,35 @@ const securedPassword= async(password)=>{
 }
 
 //for reset password send mail
-const sendResetPasswordMail=async(name,email,token)=>{
+const sendResetPasswordMail = async (name, email, token) => {
     try {
-       
-       const transporter= nodemailer.createTransport({
-            host:'smtp.ethereal.email',
-            port:587,
-            secure:false,
-            requireTLS:true,
-            auth:{
-              user: config.emailUser,
-              pass:config.emailPassword
+
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.ethereal.email',
+            port: 587,
+            secure: false,
+            requireTLS: true,
+            auth: {
+                user: config.emailUser,
+                pass: config.emailPassword
             }
 
         });
-        const mailOptions={
-            from:"roshin@gmail.com",
-            to:email,
-            subject:"for reset password",
-           html: `<p>Hi ${name}, please click here to <a href="http://localhost:3000/forget-password?token=${token}">Reset</a> your password</p>`
+        const mailOptions = {
+            from: "roshin@gmail.com",
+            to: email,
+            subject: "for reset password",
+            html: `<p>Hi ${name}, please click here to <a href="http://localhost:3000/forget-password?token=${token}">Reset</a> your password</p>`
 
 
         }
-        
-        transporter.sendMail(mailOptions,function(error,info){
-            if(error){
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
                 console.log(error);
             }
-            else{
-                console.log("Email has been sent:-",info.response);
+            else {
+                console.log("Email has been sent:-", info.response);
             }
         })
     } catch (error) {
@@ -70,7 +71,7 @@ const sendResetPasswordMail=async(name,email,token)=>{
 
 
 
-const loadRegister=async(req,res)=>{
+const loadRegister = async (req, res) => {
     try {
         res.render('signup')
     } catch (error) {
@@ -82,38 +83,38 @@ const loadRegister=async(req,res)=>{
 
 const insertUser = async (req, res) => {
     try {
-        
-        
-        userHelper.insertUser(req.body,res).then((data)=>{
-        
-        userHelper.sendVerifyMail(req.body.name, req.body.email, data._id);
-        res.render('otpVerify', { messages: "Your registration has been successfully, please verify your mail" });
+
+
+        userHelper.insertUser(req.body, res).then((data) => {
+
+            userHelper.sendVerifyMail(req.body.name, req.body.email, data._id);
+            res.render('otpVerify', { messages: "Your registration has been successfully, please verify your mail" });
         },
-        (err)=>{
-            res.render('signup', { messages: "Your registration has been failed" });
-        })
-       
+            (err) => {
+                res.render('signup', { messages: "Your registration has been failed" });
+            })
+
     } catch (error) {
         console.log(error.message);
     }
 }
 
 
-const otpverify= async(req,res)=>{
+const otpverify = async (req, res) => {
     try {
-        let userOtp= req.body.otp;
-        
-        const user_id = req.query.id;
-        
+        let userOtp = req.body.otp;
 
-        if(userHelper.otpStorage.generatedOtp==userOtp){
-            
+        const user_id = req.query.id;
+
+
+        if (userHelper.otpStorage.generatedOtp == userOtp) {
+
             const updateInfo = await User.updateOne({ _id: user_id }, { $set: { is_varified: 1 } })
 
             res.render('signup');
-            
+
         }
-        else{
+        else {
             console.log("otp is not correct");
         }
     } catch (error) {
@@ -124,7 +125,7 @@ const otpverify= async(req,res)=>{
 
 const loadLogin = async (req, res) => {
     try {
-        
+
         res.render('login')
     } catch (error) {
         console.log(error.message);
@@ -132,16 +133,16 @@ const loadLogin = async (req, res) => {
 }
 
 
-const homeLoad=async(req,res)=>{
+const homeLoad = async (req, res) => {
     try {
 
-        const productData= await Product.find({unlist:false});
-        console.log("productData to frontend:",productData);
-        
-        const categoryData= await Category.find({IsActive:false});
-        console.log("categoryData to frontend:",categoryData);
+        const productData = await Product.find({ unlist: false });
 
-        res.render('home',{product:productData,category:categoryData,user:req.session.user_id})
+
+        const categoryData = await Category.find({ IsActive: false });
+
+
+        res.render('home', { product: productData, category: categoryData, user: req.session.user_id })
     } catch (error) {
         console.log(error.message);
     }
@@ -149,11 +150,11 @@ const homeLoad=async(req,res)=>{
 
 const verifyMail = async (req, res) => {
     try {
-        const user_id = req.query.id; 
-        
+        const user_id = req.query.id;
+
         const updateInfo = await User.updateOne({ _id: user_id }, { $set: { is_varified: 1 } });
 
-        
+
         res.render("email-verified");
     } catch (error) {
         console.log(error.message);
@@ -166,74 +167,78 @@ const verifyLogin = async (req, res) => {
         const email = req.body.email;
         const password = req.body.password;
         const userData = await User.findOne({ email: email });
-        
-      if(userData){
-       const passwordMatch=await bcrypt.compare(password,userData.password);
-       
-       if(passwordMatch){
-        if(userData.is_varified===0){
-            
-         res.render('login',{message:"please verify your mail"})
+
+        if (userData) {
+            const passwordMatch = await bcrypt.compare(password, userData.password);
+
+            if (passwordMatch) {
+                if (userData.is_varified === 0) {
+
+                    res.render('login', { message: "please verify your mail" })
+                }
+                else {
+                    req.session.user_id = userData._id;
+
+                    res.redirect('home');
+                }
+
+            }
+            else {
+                res.render('login', { message: "Email and password is incorrect" });
+            }
         }
-        else{
-            req.session.user_id=userData._id;
-            
-          res.redirect('home');   
+        else {
+            res.render('login', { message: "Email and password is incorrect" });
         }
 
-       }
-       else{
-        res.render('login',{message:"Email and password is incorrect"});
-       }
-      }
-      else{
-        res.render('login',{message:"Email and password is incorrect"});
-      }
-
-     } catch (error) {
+    } catch (error) {
         console.log(error.message);
-     }
+    }
 }
 
 
 
 const loadHome = async (req, res) => {
     try {
-        const userData = await User.findById({ _id: req.session.user_id });
-        
-        
-        res.render('home', { user: userData});
-        
+
+        const productData = await Product.find({ unlist: false });
+
+
+        const categoryData = await Category.find({ IsActive: false });
+
+
+        res.render('home', { product: productData, category: categoryData, user: req.session.user_id })
     } catch (error) {
         console.log(error.message);
     }
 }
 
 
-const shopLoad=async(req,res) =>{
+const shopLoad = async (req, res) => {
     try {
-        const productData= await Product.find({unlist:false});
-        console.log("productData to frontend:",productData);
-        
-        const categoryData= await Category.find({IsActive:false});
-        console.log("categoryData to frontend:",categoryData);
+        const productData = await Product.find({ unlist: false });
 
-        // Create an object to map products to categories
-        const productsByCategory = {};
 
-        categoryData.forEach((category) => {
-            productsByCategory[category.Name] =  productData.filter((product) =>
-                product.category.equals(category._id)
-            );
-        });
-        console.log("productsByCategory:",productsByCategory);
+        const categoryData = await Category.find({ IsActive: false });
+        console.log("categoryData:", categoryData);
 
-        res.render('shop',{product:productData,category:categoryData,user:req.session.user_id});
+
+        res.render('shop', { product: productData, category: categoryData, user: req.session.user_id });
     } catch (error) {
         console.log(error.message);
     }
 }
 
+const productsByCategory = async (req, res) => {
+
+    const categoryId = req.query.categoryId;
+
+    const filteredProducts = await ProductHelper.getFilteredProducts(categoryId);
+
+    if (filteredProducts) {
+        return res.json({ filteredProducts })
+    }
+}
 
 const singleProductView = async (req, res) => {
     try {
@@ -242,16 +247,16 @@ const singleProductView = async (req, res) => {
         const singleProduct = await userHelper.getSingleProduct(productId);
 
         if (!singleProduct) {
-            
+
             return res.status(404).send("Product not found");
         }
 
         const categoryOfProduct = await userHelper.getCategoryById(singleProduct.category);
 
-           res.render('single-product',{product:singleProduct,category:categoryOfProduct,user:req.session.user_id});
+        res.render('single-product', { product: singleProduct, category: categoryOfProduct, user: req.session.user_id });
     } catch (error) {
         console.log(error.message);
-        
+
         res.status(500).send("Internal Server Error");
     }
 }
@@ -275,24 +280,24 @@ const addToCart = async (req, res) => {
 }
 
 
-    const loadCart = async (req, res) => {
+const loadCart = async (req, res) => {
     try {
-        const userId=req.session.user_id
+        const userId = req.session.user_id
         const result = await cartHelper.loadCart(userId);
-        const activeCoupens= await coupenHelper.getActiveCoupens()
-        const appliedCoupenData=await coupenHelper.getCoupendata(userId);
-        console.log("appliedCoupenData:",appliedCoupenData);
-        let appliedCoupenCode=''; 
+        const activeCoupens = await coupenHelper.getActiveCoupens()
+        const appliedCoupenData = await coupenHelper.getCoupendata(userId);
+        console.log("appliedCoupenData:", appliedCoupenData);
+        let appliedCoupenCode = '';
 
         if (Array.isArray(appliedCoupenData) && appliedCoupenData.length > 0) {
             appliedCoupenCode = appliedCoupenData[0].coupenCode;
         }
-        
-        console.log("appliedCoupenCodeeeeeeeeeeee:",appliedCoupenCode);
-    
 
-        
-         if (result.message) {
+        console.log("appliedCoupenCodeeeeeeeeeeee:", appliedCoupenCode);
+
+
+
+        if (result.message) {
             res.render('cart', { message: result.message });
         } else {
             res.render('cart', {
@@ -302,7 +307,7 @@ const addToCart = async (req, res) => {
                 subTotal: result.subTotal,
                 totalAmount: result.totalAmount,
                 user: userId,
-                activeCoupens:activeCoupens,
+                activeCoupens: activeCoupens,
                 appliedCoupenCode
             });
         }
@@ -317,7 +322,7 @@ const updateQuantity = async (req, res) => {
         const userId = req.session.user_id;
         const productId = req.query.productId;
         const newQuantity = req.query.quantity;
-        console.log("newQuantity:",newQuantity);
+        console.log("newQuantity:", newQuantity);
 
         const result = await cartHelper.updateQuantity(userId, productId, newQuantity);
 
@@ -346,36 +351,36 @@ const removeProductFromCart = async (req, res) => {
 const checkoutLoad = async (req, res) => {
     try {
         const userId = req.session.user_id;
-       
+
 
         const checkoutData = await userHelper.getCheckoutData(userId);
-        
-        const coupenData= await coupenHelper.getCoupendata(userId);
-          
-        console.log("coupenData:",coupenData);
 
-        checkoutData.coupenData=coupenData;
+        const coupenData = await coupenHelper.getCoupendata(userId);
 
-        let totalDiscount=0;
-        if(checkoutData.coupenData){
-            for(const coupen of checkoutData.coupenData) {
-               
-                const discountAmount=(checkoutData.cartTotal*coupen.discount)/100;
+        console.log("coupenData:", coupenData);
 
-                if(discountAmount > coupen.maxDiscountAmount){
+        checkoutData.coupenData = coupenData;
+
+        let totalDiscount = 0;
+        if (checkoutData.coupenData) {
+            for (const coupen of checkoutData.coupenData) {
+
+                const discountAmount = (checkoutData.cartTotal * coupen.discount) / 100;
+
+                if (discountAmount > coupen.maxDiscountAmount) {
                     totalDiscount += coupen.maxDiscountAmount;
-                }else{
-                    totalDiscount+=discountAmount;
+                } else {
+                    totalDiscount += discountAmount;
                 }
             }
         }
-       const totalToPay=checkoutData.cartTotal-totalDiscount;
+        const totalToPay = checkoutData.cartTotal - totalDiscount;
 
-       // Add the totalToPay to the checkoutData
+        // Add the totalToPay to the checkoutData
 
-       checkoutData.totalToPay = totalToPay;
-       
-       savingTotalToPayToCart= await cartHelper.saveTotalPay(userId,totalToPay);
+        checkoutData.totalToPay = totalToPay;
+
+        savingTotalToPayToCart = await cartHelper.saveTotalPay(userId, totalToPay);
 
         res.render('checkout', checkoutData);
 
@@ -385,11 +390,11 @@ const checkoutLoad = async (req, res) => {
 };
 
 
-const addAddressInCheckout=async(req,res)=>{
+const addAddressInCheckout = async (req, res) => {
     try {
-        const userId=req.session.user_id;
-        userHelper.userAddress(req.body,res,userId).then((data)=>{
-           res.redirect('/checkout')
+        const userId = req.session.user_id;
+        userHelper.userAddress(req.body, res, userId).then((data) => {
+            res.redirect('/checkout')
         })
     } catch (error) {
         console.log(error.message);
@@ -397,128 +402,212 @@ const addAddressInCheckout=async(req,res)=>{
 }
 
 
-const orderPlacing = async(req,res)=>{
+const orderPlacing = async (req, res) => {
     try {
-        let userId=req.session.user_id;
-        
-        let paymentMethod=req.body.paymentMethod;
-        
-        // if(paymentMethod==cod){
-        //     deliveyStatus= "order placed"
-        // }
+        let userId = req.session.user_id;
 
-        console.log("paymentMethod:",paymentMethod);
-        
+        let paymentMethod = req.body.paymentMethod;
+
+
+
+        console.log("paymentMethod:", paymentMethod);
+
         const { orderedProductDetails, totalOfferDiscount } = await cartHelper.getOrderedProducts(userId);
-         console.log("orderedProductDetailstttttt:",orderedProductDetails);
-        const appliedCoupenDetails=await coupenHelper.getCoupendata(userId);
-        let coupenCode=0;
-        let discount=0;
+        console.log("orderedProductDetailstttttt:", orderedProductDetails);
+        const appliedCoupenDetails = await coupenHelper.getCoupendata(userId);
+        let coupenCode = 0;
+        let discount = 0;
         if (appliedCoupenDetails && appliedCoupenDetails.length > 0) {
 
             coupenCode = appliedCoupenDetails[0].coupenCode;
 
             discount = appliedCoupenDetails[0].discount;
         }
-        
-       
-        console.log("appliedCoupenDetailsssssssss:",appliedCoupenDetails);
-        
-        const addressDetails= await addressHelper.getDefaultAddress(userId)
 
-        const totalToPay=await cartHelper.getTotalToPay(userId);
-        console.log("addressDetails:",addressDetails);
+        const addressDetails = await addressHelper.getDefaultAddress(userId)
 
-        const order= new  Order({
-            userId:userId,
-            date:new Date(),
-            paymentMethod:paymentMethod,
-            coupenCode:coupenCode,
-            coupenDiscount:discount,
-            offerDiscount:totalOfferDiscount,
-            products:orderedProductDetails,
-            addressDetails:addressDetails,
-            totalToPay:totalToPay
-            
+        const totalToPay = await cartHelper.getTotalToPay(userId);
+        console.log("addressDetails:", addressDetails);
+
+        const order = new Order({
+            userId: userId,
+            date: new Date(),
+            paymentMethod: paymentMethod,
+            coupenCode: coupenCode,
+            coupenDiscount: discount,
+            offerDiscount: totalOfferDiscount,
+            products: orderedProductDetails,
+            addressDetails: addressDetails,
+            totalToPay: totalToPay,
+            deliveryStatus:"Placed"
+
         })
-        
-        const saveOrder=await order.save();
 
-        const orderId=saveOrder._id;
-         
-        console.log("orderrrrrrrrrrrrr:",order);
+
+        const saveOrder = await order.save();
+
+        const orderId = saveOrder._id;
+
+
         //clear the user's cart after place order
 
         await cartHelper.clearCart(userId);
 
-        res.json({success:true,orderId:orderId,message:"Order Placed Successfully"})
-        
-    
+        if (req.body.paymentMethod == 'cod') {
+
+            res.json({ success: true, orderId: orderId, message: "Order Placed Successfully" })
+        }
+        if (req.body.paymentMethod == 'online') {
+
+            const response = await userHelper.generateRazorpay(orderId, totalToPay);
+            console.log("response:", response.id);
+            res.json(response)
+        }
+
+
+
+
     } catch (error) {
         console.log(error.message);
     }
 }
 
-const orderSucccessLoad=async(req,res)=>{
 
-    const orderId=req.query.orderId
+const verifyPayment = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
 
-    res.render('order-success',{orderId});
+        console.log("req.bodyyyyy:", req.body);
+        const orderId = req.body.orderDetails.receipt;
+        console.log("orderIdddddd:", orderId);
+
+        await userHelper.verifyPayment(req.body);
+
+        console.log("payment successFull");
+
+        let paymentStatusChanging = await userHelper.changePaymentStatus(orderId, userId);
+        if (paymentStatusChanging) {
+
+
+            console.log("status changed");
+            res.json({ status: true, orderId });
+        }
+
+    } catch (error) {
+        console.error("Error in verifyPayment:", error);
+        res.json({ status: "Order Failed" });
+    }
 }
 
-const orderSummaryDetails=async(req,res)=>{
-    
-    orderId=req.query.orderId;
-    
-    let orderSummaryData= await orderHelper.orderSummaryData(orderId);
 
-        orderSummaryData.orderId=orderId;
-    
-    
-    
+
+
+
+const orderSucccessLoad = async (req, res) => {
+
+    const orderId = req.query.orderId
+
+    res.render('order-success', { orderId });
+}
+
+
+const orderSummaryDetails = async (req, res) => {
+
+    const orderId = req.query.orderId;
+
+    let orderSummaryData = await orderHelper.orderSummaryData(orderId);
+
+    orderSummaryData.orderId = orderId;
+
     res.json(orderSummaryData);
 }
 
-const orderSummaryPageLoad=async(req,res)=>{
 
-    const encodedData=req.query.data;
 
-    
-    const decodedData=decodeURIComponent(encodedData);
+const orderSummaryPageLoad = async (req, res) => {
 
-    const orderSummaryData=JSON.parse(decodedData);
+    const encodedData = req.query.data;
 
-    console.log("orderSummaryDataaaaaaaaaaaaaaaaaaa:",orderSummaryData);
+    const decodedData = decodeURIComponent(encodedData);
 
-    res.render('orderSummary',{orderSummaryData:orderSummaryData});
+    const orderSummaryData = JSON.parse(decodedData);
 
+    console.log("orderSummaryDataaaaaaaaaaaaaaaaaaa:", orderSummaryData);
+
+    res.render('orderSummary', { orderSummaryData: orderSummaryData });
 
 }
 
-const viewOrders=async(req,res)=>{
-    try {
-        const userId=req.session.user_id;
-        const orderData=await orderHelper.getOrderDataOfUser(userId);
-        
-        if(orderdata && orderData.length >0){
 
-            res.render('orderList', { orders: orderData });
-        }else{
-            res.render('orderList',{});
+const viewOrderList = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const orderData = await orderHelper.getOrderDataOfUser(userId);
+
+        if (orderData && orderData.length > 0) {
+
+            res.render('orderList', { orders: orderData, user: userId });
+        } else {
+            res.render('orderList', { user: userId });
         }
 
     } catch (error) {
         console.log(error.message);
     }
 }
-   
-const userLogout=async(req,res)=>{
+
+
+const viewOrder = async (req, res) => {
     try {
+        const orderId = req.query.orderId;
+
+        let orderSummaryData = await orderHelper.orderSummaryData(orderId);
+
+        if (orderSummaryData) {
+
+            orderSummaryData.orderId=orderId;
+
+            res.render('orderSummary', { orderSummaryData: orderSummaryData });
+        }
+
+    } catch (error) {
+
+     console.log(error.message);
+    }
+}
+
+
+const orderCancelRequest=async(req,res)=>{
+    try {
+        console.log("reached here:");
+        const userId = req.session.user_id;
+        console.log("userId:",userId);
+        const cancelReason=req.body;
+        const orderId=req.params.orderId;
+
+        console.log("cancelReason:",cancelReason);
+        console.log("orderId:",orderId);
+
+        const orderCancelling=await orderHelper.orderCanceling(orderId,cancelReason,userId);
+        console.log("orderCancelling:",orderCancelling);
+        if(orderCancelling===true){
+            res.redirect('/orders');
+        }
+       
+      
+
+    } catch (error) {
         
-        
-        delete req.session.user_id 
+    }
+}
+
+const userLogout = async (req, res) => {
+    try {
+
+
+        delete req.session.user_id
         res.redirect('/')
-        
+
 
     } catch (error) {
         console.log(error.message);
@@ -528,7 +617,7 @@ const userLogout=async(req,res)=>{
 
 //forget passord code start
 
-const forgetLoad= async(req,res)=>{
+const forgetLoad = async (req, res) => {
     try {
         res.render('forget');
     } catch (error) {
@@ -536,54 +625,54 @@ const forgetLoad= async(req,res)=>{
     }
 }
 
-const forgetVerify= async(req,res)=>{
+const forgetVerify = async (req, res) => {
     try {
-        const email=req.body.email;
-        const userData=await User.findOne({email:email});
-       
-        if(userData){
-                     
-            if(userData.is_varified===0){
-                res.render('forget',{message:"please verify your mail"});
+        const email = req.body.email;
+        const userData = await User.findOne({ email: email });
+
+        if (userData) {
+
+            if (userData.is_varified === 0) {
+                res.render('forget', { message: "please verify your mail" });
             }
-            else{
-                const randomString=randomstring.generate();
-               const updatedData= await User.updateOne({email:email},{$set:{token:randomString}})
-               console.log(updatedData);
-               sendResetPasswordMail(userData.name,userData.email,randomString);
-               res.render('forget',{message:"please check your mail to reset your password"})
+            else {
+                const randomString = randomstring.generate();
+                const updatedData = await User.updateOne({ email: email }, { $set: { token: randomString } })
+                console.log(updatedData);
+                sendResetPasswordMail(userData.name, userData.email, randomString);
+                res.render('forget', { message: "please check your mail to reset your password" })
 
             }
         }
-        else{
-            res.render('forget',{message:"user email is incorrect"})
+        else {
+            res.render('forget', { message: "user email is incorrect" })
         }
     } catch (error) {
         console.log(error.message);
-        
+
     }
 }
 
-const forgetPasswordLoad=async(req,res)=>{
-     try {
-        
-        const token=req.query.token;
-       const tokenData=await User.findOne({token:token});
-       if(tokenData){
-        res.render('forget-password',{user_id:tokenData._id});
-       }
-       else{
-        res.render('404',{message:"Token is invalid"})
-       }
-     } catch (error) {
+const forgetPasswordLoad = async (req, res) => {
+    try {
+
+        const token = req.query.token;
+        const tokenData = await User.findOne({ token: token });
+        if (tokenData) {
+            res.render('forget-password', { user_id: tokenData._id });
+        }
+        else {
+            res.render('404', { message: "Token is invalid" })
+        }
+    } catch (error) {
         console.log(error.message);
-     }
+    }
 }
 
 const resetPassword = async (req, res) => {
     try {
         const password = req.body.password;
-        const user_id = req.body.user_id; 
+        const user_id = req.body.user_id;
 
         const secure_password = await securedPassword(password);
 
@@ -598,10 +687,10 @@ const resetPassword = async (req, res) => {
     }
 }
 
-const loadprofile= async(req,res)=>{
+const loadprofile = async (req, res) => {
     try {
-        const userData= await User.findById(req.session.user_id);
-        res.render('userprofile',{user:userData});
+        const userData = await User.findById(req.session.user_id);
+        res.render('userprofile', { user: userData });
     } catch (error) {
         console.log(error.message);
     }
@@ -612,9 +701,9 @@ const loadprofile= async(req,res)=>{
 const editLoad = async (req, res) => {
     try {
         const id = req.query.id;
-       
+
         const userData = await User.findById(id);
-       
+
 
         if (userData) {
             res.render('edit', { user: userData });
@@ -627,78 +716,79 @@ const editLoad = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  try {
-    
-      const userId = req.session.user_id;
-      
-      console.log("req.body:",req.body);
-      
-      let updateFields = {
-          name: req.body.name,
-          email: req.body.email,
-          mobile: req.body.mobile
-      };
-      
-      const existingUser = await User.findOne({
-          $or: [
-              { email: req.body.email },
-              { mobile: req.body.mobile }
-          ],
-          _id: { $ne: userId }
-      });
+    try {
 
-      if (existingUser) {
-           res.json({ success:false });
-      } else {
-       
-          const userData = await User.findByIdAndUpdate(
-            {  _id:req.session.user_id},
-              { $set: updateFields },
-              { new: true }
-              
-          );
-         
+        const userId = req.session.user_id;
 
-          res.json({userData,
-          success:true
-    })
+        console.log("req.body:", req.body);
 
-         
-         
-           
-      }
-      
+        let updateFields = {
+            name: req.body.name,
+            email: req.body.email,
+            mobile: req.body.mobile
+        };
 
-  } catch (error) {
-      console.log(error.message);
-      
-  }
+        const existingUser = await User.findOne({
+            $or: [
+                { email: req.body.email },
+                { mobile: req.body.mobile }
+            ],
+            _id: { $ne: userId }
+        });
+
+        if (existingUser) {
+            res.json({ success: false });
+        } else {
+
+            const userData = await User.findByIdAndUpdate(
+                { _id: req.session.user_id },
+                { $set: updateFields },
+                { new: true }
+
+            );
+
+
+            res.json({
+                userData,
+                success: true
+            })
+
+
+
+
+        }
+
+
+    } catch (error) {
+        console.log(error.message);
+
+    }
 };
 
 
-const addressManagement= async(req,res)=>{
+const addressManagement = async (req, res) => {
     try {
         const userId = req.session.user_id;
-        const addressData= await Address.find({user_id: userId});
+        const addressData = await Address.find({ user_id: userId });
 
 
-        res.render('addressManagment',{addressData});
-        } catch (error) {
+        res.render('addressManagment', { addressData });
+    } catch (error) {
         console.log(error.message);
     }
 }
 
-const addAddress= async(req,res)=>{
+const addAddress = async (req, res) => {
     try {
         res.render('addAddress');
     } catch (error) {
         console.log(error.message);
     }
 }
-const submitAddress= async(req,res)=>{
+const submitAddress = async (req, res) => {
     try {
-      const userId= req.session.user_id;
-        userHelper.userAddress(req.body,res,userId).then((data)=>{
+        const userId = req.session.user_id;
+        userHelper.userAddress(req.body, res, userId).then((data) => {
             res.redirect('http://localhost:5000/addressManagement');
         });
     } catch (error) {
@@ -706,78 +796,78 @@ const submitAddress= async(req,res)=>{
     }
 }
 
-const editAddress=async(req,res)=>{
+const editAddress = async (req, res) => {
     try {
-        const addressId=req.query.id;
-        
-        const addressData= await Address.findOne({_id:addressId});
+        const addressId = req.query.id;
+
+        const addressData = await Address.findOne({ _id: addressId });
         console.log(addressData);
 
-        if(addressData){
-            res.render('editAddress',{address:addressData})
-        }else{
+        if (addressData) {
+            res.render('editAddress', { address: addressData })
+        } else {
             res.redirect('/addressManagement');
         }
-        } catch (error) {
+    } catch (error) {
         console.log(error.message);
     }
 }
 const updateAddress = async (req, res) => {
     try {
-      const sessionUserId = req.session.user_id;
-      const addressId = req.body.addressid;
-      
-  
-      // Find the user's address based on the session user_id
-      const userAddress = await Address.find({ user_id: sessionUserId });
-      
-    
-  
-      if (!userAddress) {
-        return res.status(404).json({ error: 'User address not found' });
-      }
-  
-      const specificAddress=userAddress.find(addr=>addr._id.equals(addressId));
-       console.log(specificAddress);
-      if (!specificAddress) {
-        return res.status(404).json({ error: 'Address not found' });
-      }else{
-        specificAddress.address[0].name=req.body.name;
-        specificAddress.address[0].mobile=req.body.mobile;
-        specificAddress.address[0].homeAddress=req.body.homeAddress;
-        specificAddress.address[0].place=req.body.place;
-        specificAddress.address[0].pincode=req.body.pincode
+        const sessionUserId = req.session.user_id;
+        const addressId = req.body.addressid;
 
-      }
-      await specificAddress.save();
-      return res.redirect('/addressManagement')
+
+        // Find the user's address based on the session user_id
+        const userAddress = await Address.find({ user_id: sessionUserId });
+
+
+
+        if (!userAddress) {
+            return res.status(404).json({ error: 'User address not found' });
+        }
+
+        const specificAddress = userAddress.find(addr => addr._id.equals(addressId));
+        console.log(specificAddress);
+        if (!specificAddress) {
+            return res.status(404).json({ error: 'Address not found' });
+        } else {
+            specificAddress.address[0].name = req.body.name;
+            specificAddress.address[0].mobile = req.body.mobile;
+            specificAddress.address[0].homeAddress = req.body.homeAddress;
+            specificAddress.address[0].place = req.body.place;
+            specificAddress.address[0].pincode = req.body.pincode
+
+        }
+        await specificAddress.save();
+        return res.redirect('/addressManagement')
     } catch (error) {
-      console.error('Error updating address:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+        console.error('Error updating address:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
-  
-const deleteAddress= async(req,res)=>{
+
+const deleteAddress = async (req, res) => {
     try {
-        const addressIdToDelete=req.query.id;
-        const addressData= await Address.findOne({_id:addressIdToDelete});
+        const addressIdToDelete = req.query.id;
+        const addressData = await Address.findOne({ _id: addressIdToDelete });
         const sessionUserId = req.session.user_id;
-        
-        if(addressData){
-            await Address.deleteOne({_id:addressData._id});
-            
-            if(addressData.address[0].isDefault){
-                const nextAddress= await Address.findOne({user_id:sessionUserId});
-                
-                if(nextAddress){
-                    nextAddress.address[0].isDefault=true;
+
+        if (addressData) {
+            await Address.deleteOne({ _id: addressData._id });
+
+            if (addressData.address[0].isDefault) {
+                const nextAddress = await Address.findOne({ user_id: sessionUserId });
+
+                if (nextAddress) {
+                    nextAddress.address[0].isDefault = true;
                     await nextAddress.save();
                 }
             }
-            
+
             return res.redirect('/addressManagement');
-            
-        }else{
+
+        } else {
             console.log('Address data not found.');
         }
 
@@ -808,7 +898,7 @@ const setasDefault = async (req, res) => {
             { $set: { "address.0.isDefault": true } }
         );
 
-        
+
         await addressDataToUpdate.save();
 
         if (req.query.source === 'checkout') {
@@ -818,15 +908,15 @@ const setasDefault = async (req, res) => {
         }
     } catch (error) {
         console.log(error.message);
-        return res.status(500).json({ error: error.message }); 
+        return res.status(500).json({ error: error.message });
     }
 }
 
 
-    
 
-    
-module.exports={
+
+
+module.exports = {
     loadRegister,
     insertUser,
     loadLogin,
@@ -863,8 +953,13 @@ module.exports={
     orderSucccessLoad,
     orderSummaryDetails,
     orderSummaryPageLoad,
-    viewOrders
+    viewOrderList,
+    viewOrder,
+    verifyPayment,
+    productsByCategory,
+    orderCancelRequest
 
-    
+
 }
+
 

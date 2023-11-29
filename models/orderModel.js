@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const ordersSchema = new mongoose.Schema({
   userId:{
     type: mongoose.Schema.Types.ObjectId,
-    ref:"User"
+    ref:"user"
   },
   date:{
     type:Date,
@@ -91,11 +91,6 @@ const ordersSchema = new mongoose.Schema({
 
 },
   
-  cancellationStatus:{
-    type:String,
-    default:"Not requested"
-    
-  },
   cancelledOrder:{
     type:Boolean,
     default:false
@@ -107,8 +102,25 @@ const ordersSchema = new mongoose.Schema({
   totalToPay:{
     type:Number,
     default:0
-  }
+  },
+  cancelRequest: {
+    requestedBy: {
+      type: String,
+      default: 'user'
+    },
+    reason: {
+      type: String,
+    },
+    requestedAt: {
+      type: Date,
+      default: null,
+    },
+    status: {
+      type: String,
+      default: 'Not requested',
+    },
+  },
+});
 
-})
 
 module.exports = mongoose.model('Order',ordersSchema )

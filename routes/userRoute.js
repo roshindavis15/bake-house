@@ -70,8 +70,9 @@ user_route.get('/profile',auth.isLogin,userController.loadprofile);
 
 user_route.get('/edit', auth.isLogin, userController.editLoad);
 
-user_route.get('/shop',userController.shopLoad); 
+user_route.get('/shop',auth.isLogin,userController.shopLoad); 
 
+user_route.get('/productsByCategory',auth.isLogin,userController.productsByCategory);
 user_route.get('/singleProduct',auth.isLogin,userController.singleProductView);
 
 user_route.get('/cart',auth.isLogin,userController.loadCart);
@@ -98,8 +99,13 @@ user_route.get('/orderSummary',auth.isLogin,userController. orderSummaryDetails)
 
 user_route.get('/orderSummaryPage',auth.isLogin,userController.orderSummaryPageLoad);
 
-user_route.get('/orders',auth.isLogin,userController.viewOrders);
+user_route.get('/orders',auth.isLogin,userController.viewOrderList);
 
+user_route.get('/view-order',auth.isLogin,userController.viewOrder);
+
+user_route.post('/verify-payment',auth.isLogin,userController.verifyPayment)
+
+user_route.post('/cancelOrderRequest/:orderId', auth.isLogin, userController.orderCancelRequest);
 
 
 

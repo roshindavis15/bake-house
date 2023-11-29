@@ -276,7 +276,7 @@ async function getOrderedProducts(userId){
         
         if(cart){
             const orderedProducts=cart.products;
-            console.log("orderedProducts:",orderedProducts);
+            
 
             let orderedProductDetails=[];
             let  totalOfferDiscount=0
@@ -285,12 +285,12 @@ async function getOrderedProducts(userId){
                 const offerAmount=product.total-product.subtotal;
                 totalOfferDiscount+=offerAmount;
                
-               console.log("totalOfferDiscount:",totalOfferDiscount);
+               
                 const productDetails=await Product.findById(product.productId);
-                console.log("details:",productDetails);
+                
                 if(productDetails){
-                    console.log("product.quantity,:",product.quantity);
-                    console.log("product.total:",product.total);
+                    
+                
                     const orderedProductDetail={
                         productId:productDetails._id,
                         productName:productDetails.name,
@@ -303,7 +303,7 @@ async function getOrderedProducts(userId){
                     orderedProductDetails.push(orderedProductDetail);
                 }
             }
-            console.log("orderedProductsDetails:", orderedProductDetails);
+            
 
             return {orderedProductDetails,totalOfferDiscount}
         }
