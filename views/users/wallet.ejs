@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <style>
+        body {
+            padding: 60px;
+        }
+
+        .balance-label {
+            font-weight: bold;
+            font-size: 24px;
+            color: green;
+            /* Change the color to your preference */
+        }
+
+        .container {
+            margin-top: 50px;
+            padding-bottom: 50px;
+        }
+
+        .balance-history {
+            margin-top: 20px;
+        }
+
+        .balance-history h4 {
+            margin-bottom: 10px;
+        }
+
+        .balance-history ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .balance-history li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2 class="wallet">Wallet</h2>
+
+        <form>
+            <div class="form-group">
+                <% if (typeof wallet !== 'undefined' && wallet !== null) { %>
+                    <label class="balance-label" id="balanceLabel" for="balanceAmount">Balance: <%= wallet.walletAmount %></label>
+                <% } else { %>
+                    <label id="balanceLabel" for="balanceAmount">Balance: 0</label>
+                <% } %>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add Balance</button>
+        </form>
+    </div>
+
+    <div class="container balance">
+        <h3>Balance History</h3>
+    
+        <div class="card balance-history mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Debits</h4>
+            </div>
+            <ul class="list-group list-group-flush">
+                <% for (let i = 0; i < debitedFromWallet.length; i++) { %>
+                    <li class="list-group-item">
+                        Amount: <%= debitedFromWallet[i].amount %> - Date: <%= debitedFromWallet[i].date %>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    
+        <div class="card balance-history">
+            <div class="card-header">
+                <h4 class="mb-0">Credits</h4>
+            </div>
+            <ul class="list-group list-group-flush">
+                <% for (let i = 0; i < creditedToWallet.length; i++) { %>
+                    <li class="list-group-item">
+                        Amount: <%= creditedToWallet[i].amount %> - Date: <%= creditedToWallet[i].date %>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        document.querySelector('.btn.btn-primary').addEventListener('click', function(event) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: 'Recharge Wallet',
+                html: '<i class="fa fa-inr"></i> <input id="recharge-amount" class="swal2-input" placeholder="Enter recharge amount">',
+                focusConfirm: false,
+                preConfirm: () => {
+                    return document.getElementById('recharge-amount').value;
+                }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    Swal.fire(
+                        'Wallet Recharged!',
+                        'Your wallet has been recharged with ' + result.value + ' amount.',
+                        'success'
+                    );
+
+                    fetch('/walletAmount', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            rechargeAmount: result.value
+                        })
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Network response was not ok.');
+                    })
+                    .then(data => {
+                        const walletBalance = data.wallet.walletAmount;
+                        const balanceElement = document.getElementById('balanceLabel');
+                        if (balanceElement) {
+                            balanceElement.textContent = `Balance: ${walletBalance}`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error', error);
+                        // Handle errors or display a message to the user
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error', error);
+                // Handle errors or display a message to the user
+            });
+        });
+    </script>
+</body>
+
+</html>

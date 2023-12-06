@@ -83,12 +83,23 @@ const verifyLogin = async (req, res) => {
 const loadDashboard = async (req, res) => {
 
     try {
-        await adminHelper.loadingDashboard(req, res)
+        
+        const chartData= await adminHelper.getChartData();
+        console.log("chartData:",chartData);
+        const placedOrderCount= await adminHelper.getTotalPlacedOrderCount();
+        const cancelledOrderCount= await adminHelper.getTotalCancelledOrderCount();
+        const deliveredOrderCount= await adminHelper.getTotalDeliveredOrderCount()
+        console.log("placedOrderCount:",placedOrderCount);
+        console.log("cancelledOrderCount:",cancelledOrderCount);
+        console.log("deliveredOrderCount:",deliveredOrderCount);
+        res.render('index',{placedOrderCount:placedOrderCount,cancelledOrderCount:cancelledOrderCount,deliveredOrderCount});
 
     } catch (error) {
         console.log(error.message);
     }
 }
+
+
 
 const logout = async (req, res) => {
 
@@ -260,11 +271,18 @@ const orderCanceling=async(req,res)=>{
     try {
         
         const orderId = req.body.orderId;
-        const cancellingOrder= await orderHelper.cancellingOrder(orderId) ;
-        console.log("cancellingOrder:",cancellingOrder);
-        if(cancellingOrder){
+        const cancelOrderResult= await orderHelper.cancellingOrder(orderId) ;
+        console.log("cancellingOrder:",cancelOrderResult);
+        if(cancelOrderResult.success){
+            
+        
+        if(cancelOrderResult.paymentMethod==="wallet"){
+            const amountReturningToWallet= await adminHelper.amountReturningToWallet(cancelOrderResult.paymentMethod,cancelOrderResult.userId,cancelOrderResult.total);
             return res.json({orderCancelled:true});
-        }else{
+        }
+        return res.json({orderCancelled:true});
+    }
+        else{
             res.json({orderCancelled:false})
         }
     } catch (error) {
@@ -295,7 +313,7 @@ const updateOrderStatus=async(req,res)=>{
             return res.json({updated:true});
         }
     } catch (error) {
-        
+        console.log(error.message);
     }
 }
 
@@ -361,6 +379,8 @@ const categoryLoad = async (req, res) => {
         console.log(error.message);
     }
 }
+
+
 const addCategory = async (req, res) => {
     try {
 
@@ -397,6 +417,8 @@ const blockUser = async (req, res) => {
         console.log(error.message);
     }
 }
+
+
 const unblockUser = async (req, res) => {
     try {
         console.log('unblock', req.query.uid);
@@ -409,6 +431,7 @@ const unblockUser = async (req, res) => {
     }
 }
 
+
 const unlistProduct = async (req, res) => {
     try {
         const productId = req.query.pid;
@@ -418,6 +441,7 @@ const unlistProduct = async (req, res) => {
         console.log(error.message);
     }
 }
+
 
 const listProduct = async (req, res) => {
     try {
@@ -429,6 +453,7 @@ const listProduct = async (req, res) => {
         console.log(error.message);
     }
 }
+
 
 const editProductLoad = async (req, res) => {
     try {
@@ -446,49 +471,31 @@ const editProductLoad = async (req, res) => {
 
 
 const editProduct = async (req, res) => {
-
     try {
-
-
         let updateFields = {
             name: req.body.name,
             price: req.body.price,
             stock: req.body.stock,
             description: req.body.description,
-
         };
 
         let productId = req.body.productId;
 
-        let productAlreadyExist = await Product.findOne({
-            name: updateFields.name,
-            _id: { $ne: productId }
-        });
-        console.log("productalready:", productAlreadyExist);
-        if (productAlreadyExist) {
-            const response = { productNameAlreadyExist: true };
-            return res.json(response);
+        const result = await adminHelper.updateProduct(updateFields, productId);
+
+        if (result.productNameAlreadyExist === true) {
+            return res.json({ productNameAlreadyExist: true });
+        } else if (result.success) {
+            return res.json({ success: true, message: "Product updated successfully", redirectTo: "/productIndex" });
         } else {
-
-            console.log("elseiddd:", productId);
-            console.log("updateFields:", updateFields);
-            console.log("productAlreadyExist:", productAlreadyExist);
-            let productData = await Product.findByIdAndUpdate(
-                productId,
-                { $set: updateFields },
-                { new: true }
-
-            );
-            console.log('productdata:', productData);
-            if (!productData) {
-                return res.status(404).json({ error: "product not found" });
-            }
-            return res.redirect("/admin/productIndex");
+            return res.status(404).json({ error: "Product not found" });
         }
     } catch (error) {
         console.log(error.message);
+        return res.status(500).json({ error: "Internal server error" });
     }
-}
+};
+
 
 const notActiveCategory = async (req, res) => {
     try {
@@ -526,42 +533,54 @@ const editCategoryLoad = async (req, res) => {
 
 const updateCategory = async (req, res) => {
     try {
-        console.log("req.body:", req.body);
         let updateFields = {
             Name: req.body.name,
             Description: req.body.description,
             Discount: req.body.discount
         };
 
-        let categoryId = req.body.categoryId
+        let categoryId = req.body.categoryId;
 
+        const result = await adminHelper.updateCategory(updateFields, categoryId);
 
-        let categoryAlreadyExist = await Category.findOne({
-            Name: updateFields.Name,
-            _id: { $ne: categoryId }
-        });
-        console.log("alreadyyy:", categoryAlreadyExist);
-
-        if (categoryAlreadyExist) {
-            res.json({ categoryAlreadyExist: true });
+        if (result.categoryAlreadyExist === true) {
+            return res.json({ categoryAlreadyExist: true });
+        } else if (result.error) {
+            return res.status(404).json({ error: "Category not found" });
+        } else {
+            return res.json({ categoryAlreadyExist: false });
         }
-        else {
-            let categoryData = await Category.findByIdAndUpdate(
-                categoryId,
-                { $set: updateFields },
-                { new: true }
-            )
-            return res.json({ categoryAlreadyExist: false })
-            
-        }
-
     } catch (error) {
-         console.log(error.message);
+        console.log(error.message);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+
+const salesLoad =async (req,res)=>{
+    try {
+       
+            res.render('sales');
+        
+    } catch (error) {
+        console.log(error.message);
     }
 }
 
 
+const getChartData=async(req,res)=>{
+    try {
 
+        console.log("reached hereree");
+        const chartData= await adminHelper.getChartData();
+        console.log(chartData);
+        if(chartData){
+            res.json({chartData});
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
 
 
 
@@ -599,7 +618,9 @@ module.exports = {
     viewOrderDetails,
     orderCanceling,
     rejectCancellation,
-    updateOrderStatus
+    updateOrderStatus,
+    salesLoad,
+    getChartData
 
 
 }

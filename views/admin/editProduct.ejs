@@ -62,7 +62,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-   document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("editForm");
     const nameInput = document.getElementById("name");
     const productIdInput = document.getElementById("productId");
@@ -79,8 +79,7 @@
         const newStock = parseFloat(stockInput.value);
         const newDescription = descriptionInput.value;
 
-        // Updated Product Name Validation to allow spaces
-        const nameRegex = /^[A-Za-z\s]+$/; // Alphabetic characters and spaces
+        const nameRegex = /^[A-Za-z\s]+$/;
         const isNameValid = nameRegex.test(newName);
 
         if (!isNameValid) {
@@ -89,51 +88,55 @@
                 title: 'Invalid Name',
                 text: 'Please enter a valid product name containing only alphabetic characters and spaces.'
             });
-            return; // Prevent form submission if name validation fails
+            return;
         }
 
-        // Price and Stock Validation
         if (newPrice < 0 || newStock < 0 || isNaN(newPrice) || isNaN(newStock)) {
             Swal.fire({
                 icon: 'error',
                 title: 'Invalid Value',
                 text: 'Price and Stock should be valid positive numbers.'
             });
-            return; // Prevent form submission if price or stock is negative or not a number
+            return;
         }
 
-        const response = await fetch('/admin/editProduct', {
-            method: 'POST',
-            body: JSON.stringify({
-                name: newName,
-                productId: productId,
-                price: newPrice,
-                stock: newStock,
-                description: newDescription
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-        if (data.productNameAlreadyExist === true) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Already Exist',
-                text: 'The Name With A Product Already Exists.'
+        try {
+            const response = await fetch('/admin/editProduct', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: newName,
+                    productId: productId,
+                    price: newPrice,
+                    stock: newStock,
+                    description: newDescription
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
-        } else  {
-            console.log("success alert");
-            Swal.fire({
-                icon: 'success',
-                title: 'Product Updated',
-                text: 'The product has been successfully updated.'
-            })
-        } 
+
+            const data = await response.json();
+            if (data.productNameAlreadyExist === true) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Already Exist',
+                    text: 'The Name With A Product Already Exists.'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Product Updated',
+                    text: 'The product has been successfully updated.'
+                }).then(() => {
+                    window.location.href = '/admin/productIndex';
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Handle error, show error message to the user, etc.
+        }
     });
 });
-
 
 
         

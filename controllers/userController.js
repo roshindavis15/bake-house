@@ -84,11 +84,15 @@ const loadRegister = async (req, res) => {
 const insertUser = async (req, res) => {
     try {
 
-
+          console.log("reaching here:");
         userHelper.insertUser(req.body, res).then((data) => {
 
-            userHelper.sendVerifyMail(req.body.name, req.body.email, data._id);
-            res.render('otpVerify', { messages: "Your registration has been successfully, please verify your mail" });
+            userHelper.sendVerifyMail(req.body.name, req.body.email);
+            console.log("useeerrr:",data._id);
+            res.render('otpVerify', {
+                messages: "Your registration has been successful, please verify your mail",
+                userId: data._id // Pass userId as a property
+            });
         },
             (err) => {
                 res.render('signup', { messages: "Your registration has been failed" });
@@ -103,24 +107,34 @@ const insertUser = async (req, res) => {
 const otpverify = async (req, res) => {
     try {
         let userOtp = req.body.otp;
+        const userId = req.body.userId;
+        console.log("userId:", userId);
+        
+        const generatedOtp = await userHelper.otpStorage.generatedOtp;
+        console.log("generated otp:", generatedOtp);
 
-        const user_id = req.query.id;
+        console.log("userOtp:", userOtp);
 
+        if (generatedOtp === userOtp) {
+            const updateUser = await User.findOne({_id:userId});
+            if(updateUser){
+                updateUser.is_varified=1
+                updateUser.save()
 
-        if (userHelper.otpStorage.generatedOtp == userOtp) {
-
-            const updateInfo = await User.updateOne({ _id: user_id }, { $set: { is_varified: 1 } })
-
-            res.render('signup');
-
-        }
-        else {
-            console.log("otp is not correct");
+            }
+            
+            // Redirect with a success message in the URL query parameter
+            res.redirect('/login?message=Verification%20successful!');
+        } else {
+            // Redirect with a failure message in the URL query parameter
+            res.redirect('/signup?message=Verification%20failed.%20Please%20try%20again.');
         }
     } catch (error) {
         console.log(error.message);
+        // Redirect with an error message in the URL query parameter
+        res.redirect('/signup?message=An%20error%20occurred.%20Please%20try%20again%20later.');
     }
-}
+};
 
 
 const loadLogin = async (req, res) => {
@@ -148,18 +162,7 @@ const homeLoad = async (req, res) => {
     }
 }
 
-const verifyMail = async (req, res) => {
-    try {
-        const user_id = req.query.id;
 
-        const updateInfo = await User.updateOne({ _id: user_id }, { $set: { is_varified: 1 } });
-
-
-        res.render("email-verified");
-    } catch (error) {
-        console.log(error.message);
-    }
-}
 
 
 const verifyLogin = async (req, res) => {
@@ -229,15 +232,81 @@ const shopLoad = async (req, res) => {
     }
 }
 
+
+const wishListLoad=async(req,res)=>{
+    try {
+        const userId= req.session.user_id;
+        const wishListData=await userHelper.getWishListData(userId);
+        res.render('wishList',{wishListData:wishListData,user:userId});
+    } catch (error) {
+        console.error('Error loading wishlist');
+    }
+}
+
+const addtoWishList=async(req,res)=>{
+    try {
+       let productId=req.body.productId;
+       let userId=req.session.user_id;
+
+       const addingtoWishlist= await userHelper.addProductTowishList(productId,userId);
+       if(addingtoWishlist){
+        res.json({message:addingtoWishlist})
+       }
+
+    } catch (error) {
+        console.error('Error in addtoWishList :', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+const removeFromWishList = async (req, res) => {
+    try {
+        let productId = req.body.productId;
+        console.log("productId:",productId);
+        let userId = req.session.user_id;
+        console.log("productId:",productId);
+        const removingFromWishlist= await userHelper.removeFromWishList(productId,userId);
+        if(removingFromWishlist.success){
+            res.status(200).json({message:'Product removed'});
+        } else {
+            res.status(400).json({ error: removingFromWishlist.message });
+        }
+    } catch (error) {
+         console.error('error in remove product from wish list');
+         res.status(500).json({error:'Internal server error'})
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const productsByCategory = async (req, res) => {
 
     const categoryId = req.query.categoryId;
 
     const filteredProducts = await ProductHelper.getFilteredProducts(categoryId);
+    
 
     if (filteredProducts) {
+        console.log("filteredProducts:",filteredProducts);
         return res.json({ filteredProducts })
     }
+}
+
+const getAllProducts=async(req,res)=>{
+    const productData = await Product.find({ unlist: false }); 
+    res.json({products})
 }
 
 const singleProductView = async (req, res) => {
@@ -264,8 +333,8 @@ const singleProductView = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const productId = req.query.productId;
-
+        let productId = req.query.productId || req.body.productId;
+        
         const result = await cartHelper.addToCart(req.session.user_id, productId);
 
         if (result.addToCart) {
@@ -408,12 +477,8 @@ const orderPlacing = async (req, res) => {
 
         let paymentMethod = req.body.paymentMethod;
 
-
-
-        console.log("paymentMethod:", paymentMethod);
-
         const { orderedProductDetails, totalOfferDiscount } = await cartHelper.getOrderedProducts(userId);
-        console.log("orderedProductDetailstttttt:", orderedProductDetails);
+        
         const appliedCoupenDetails = await coupenHelper.getCoupendata(userId);
         let coupenCode = 0;
         let discount = 0;
@@ -427,7 +492,7 @@ const orderPlacing = async (req, res) => {
         const addressDetails = await addressHelper.getDefaultAddress(userId)
 
         const totalToPay = await cartHelper.getTotalToPay(userId);
-        console.log("addressDetails:", addressDetails);
+    
 
         const order = new Order({
             userId: userId,
@@ -439,33 +504,59 @@ const orderPlacing = async (req, res) => {
             products: orderedProductDetails,
             addressDetails: addressDetails,
             totalToPay: totalToPay,
-            deliveryStatus:"Placed"
+            deliveryStatus: "Placed"
 
         })
 
 
-        const saveOrder = await order.save();
-
-        const orderId = saveOrder._id;
-
-
-        //clear the user's cart after place order
-
-        await cartHelper.clearCart(userId);
+       
 
         if (req.body.paymentMethod == 'cod') {
+
+            const saveOrder = await order.save();
+            const orderId = saveOrder._id;
+            //clear the user's cart after place order
+            await cartHelper.clearCart(userId);
 
             res.json({ success: true, orderId: orderId, message: "Order Placed Successfully" })
         }
         if (req.body.paymentMethod == 'online') {
 
+
+            const saveOrder = await order.save();
+            const orderId = saveOrder._id;
+            //clear the user's cart after place order
+            await cartHelper.clearCart(userId);
+
             const response = await userHelper.generateRazorpay(orderId, totalToPay);
-            console.log("response:", response.id);
+
+            
+            
+            
             res.json(response)
         }
+        if (req.body.paymentMethod == 'wallet') {
+            const userWallet = await userHelper.getWallet(userId);
+            const walletBalance = userWallet.walletAmount;
+            if (walletBalance >= totalToPay) {
+                // Deduct total amount from wallet balance
+                const remainingBalance = walletBalance - totalToPay;
 
+                // Update user's wallet balance in the database
+                await userHelper.updateWalletBalance(userId, remainingBalance);
 
+                const saveOrder = await order.save();
+                const orderId = saveOrder._id;
+                //clear the user's cart after place order
+                await cartHelper.clearCart(userId);
 
+                res.json({ success: true, orderId: orderId, message: "Order Placed Successfully" })
+
+            } else {
+                res.json({ success: false, message: "Insufficient Wallet Balance" });
+            }
+
+        }
 
     } catch (error) {
         console.log(error.message);
@@ -589,16 +680,57 @@ const orderCancelRequest=async(req,res)=>{
         console.log("orderId:",orderId);
 
         const orderCancelling=await orderHelper.orderCanceling(orderId,cancelReason,userId);
-        console.log("orderCancelling:",orderCancelling);
+        
         if(orderCancelling===true){
             res.redirect('/orders');
         }
        
-      
+    } catch (error) {
+
+        console.log(error.message);
+    }
+}
+
+
+const walletPageLoad= async(req,res)=>{
+    try {
+        const userId=req.session.user_id;
+        const wallet = await userHelper.getWallet(userId);
+        const debitedFromWallet= await userHelper.getDebitTransactions(userId);
+        const creditedToWallet=await userHelper.getCreditTransactions(userId);
+
+        console.log("debitedFromWallet:",debitedFromWallet);
+        console.log("creditedFromWallet",creditedToWallet);
+        
+        if(wallet){
+            res.render('wallet',{wallet:wallet,debitedFromWallet:debitedFromWallet,creditedToWallet:creditedToWallet});
+        }else{
+            res.render('wallet')
+        }
 
     } catch (error) {
-        
+        console.log(error.message);
     }
+}
+
+const walletRecharging=async(req,res)=>{
+     try {
+
+        
+        let  userId=req.session.user_id;
+        let rechargedAmount=req.body.rechargeAmount;
+
+        const wallet= await userHelper.walletRecharging(userId,rechargedAmount);
+        
+
+
+        if(wallet){
+            return res.json({wallet:wallet});
+        }
+
+     } catch (error) {
+        
+     }
 }
 
 const userLogout = async (req, res) => {
@@ -921,8 +1053,7 @@ module.exports = {
     insertUser,
     loadLogin,
     homeLoad,
-    securedPassword,
-    verifyMail,
+    securedPassword,    
     verifyLogin,
     loadHome,
     userLogout,
@@ -957,7 +1088,13 @@ module.exports = {
     viewOrder,
     verifyPayment,
     productsByCategory,
-    orderCancelRequest
+    orderCancelRequest,
+    walletPageLoad,
+    walletRecharging,
+    getAllProducts,
+    wishListLoad,
+    addtoWishList,
+    removeFromWishList
 
 
 }

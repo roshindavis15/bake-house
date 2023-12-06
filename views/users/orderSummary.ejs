@@ -128,9 +128,16 @@
           <img src="/frutika-master/uploads/<%= product.image[0] %>" alt="">
           <span><%= product.productName %></span>
           <span class="quantity">* <%= product.quantity %></span>
+          
         </div>
       <% }); %>
+
+      <div class="card-content">
+        <p><span>Delivery Status:</span> <span class="backend-value"><%= orderSummaryData.deliveryStatus %></span></p>
+      </div>
+      
     </div>
+
 
     <div class="card total">
       <p><strong>Total to Pay:</strong> ₹<%= orderSummaryData.getTotalToPay %></p>
@@ -158,8 +165,6 @@
       
       </div>
   </div>
-  
-  
   
   </div>
 </body>

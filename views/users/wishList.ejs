@@ -1,0 +1,155 @@
+<%- include('../layouts/header')%>
+<style>
+
+img {
+    display: block;
+    border-radius: 50%;
+    width: 50px;
+    /* Adjust the width as needed */
+    height: 50px;
+    /* Adjust the height as needed */
+    object-fit: cover;
+}
+</style>
+
+    <!-- breadcrumb-section -->
+    <div class="breadcrumb-section breadcrumb-bg">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2 text-center">
+                    <div class="breadcrumb-text">
+
+                        <h1>Wish List</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end breadcrumb section -->
+
+    <div class="container pt-150 pb-150">
+
+        <table class="table table-bordered">
+            <tr>
+                <th>Product Name</th>
+                <th>Image</th>
+                <th>Price</th>
+                <th>Stock Status</th>
+                <th>Added On</th>
+                <th>Action</th>
+            </tr>
+            <% if(typeof wishListData !='undefined' ){%>
+                <%wishListData.forEach(item=>{%> <%item.products.forEach(product=>{%> <tr>
+                            <td>
+                                <%=product.productId.name%>
+                            </td>
+                            <td><img src="/frutika-master/uploads/<%=product.productId.image[0]%>" alt=""></td>
+                            <td>
+                                <%=product.productId.price%>
+                            </td>
+                            <td class="stock-status">
+                                <%= product.productId.stock> 0 ? 'In Stock' : 'Out of Stock' %>
+                            </td>
+                            <td>
+                                <%= new Date(product.addedAt).toLocaleString('en-US', {timeZone: 'Asia/Kolkata' }) %>
+                            </td>
+                            </td>
+                            <td>
+                                <div class="d-flex">
+                                    <button class="btn btn-success btn-sm mr-2 addToCartButton"
+                                            data-product-id="<%= product.productId._id %>"
+                                            data-stock-status="<%= product.productId.stock > 0 ? 'in-stock' : 'out-of-stock' %>">
+                                        Add to Cart
+                                    </button>
+
+                                    <button class="btn btn-danger btn-sm removeButton" 
+                                    data-product-id="<%= product.productId._id %>">Remove</button>
+                                </div>
+                                
+                            </td>
+
+                        </tr>
+                        <%})%>
+                            <%})%>
+                                <%}%>
+        </table>
+    </div>
+    <%- include('../layouts/footer')%>
+
+
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const addToCartButtons = document.querySelectorAll('.addToCartButton');
+                const removeButtons = document.querySelectorAll('.removeButton');
+
+                addToCartButtons.forEach(button => {
+                    button.addEventListener('click', async (event) => {
+
+                        const stockStatusCell = button.closest('tr').querySelector('.stock-status');
+                        const stockStatus = button.getAttribute('data-stock-status');
+
+                        if (stockStatus === 'out-of-stock') {
+                            stockStatusCell.style.color = 'red'; 
+                            stockStatusCell.style.animation = 'shake 0.5s'; 
+                            setTimeout(() => {
+                                stockStatusCell.style.animation = ''; 
+                            }, 500);
+                        } else {
+                            
+                            const productId = button.getAttribute('data-product-id');
+                            try {
+                                const response = await fetch('/addtoCart', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ productId })
+                                });
+                                
+                                const data=await response.json();
+                                if(data.addToCart){
+                                    Swal.fire({
+                                        icon:'success',
+                                        title:'Success',
+                                        text:'Product Added to cart'
+                                    })
+                                }else{
+                                    console.error('Failed to add product to cart');
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                            }
+                        }
+                    });
+                });
+                removeButtons.forEach(button=>{
+                    button.addEventListener('click',async(event)=>{
+                        const productId=button.getAttribute('data-product-id');
+                        try {
+                            const response=await fetch('/removeFromWishList',{
+                                method:'POST',
+                                headers:{
+                                    'Content-Type':'application/json'
+                                },
+                                body:JSON.stringify({productId:productId})
+                            });
+
+                            const data=await response.json();
+                            if(data.message=='Product removed'){
+                                const tableRow=button.closest('tr');
+                                tableRow.parentNode.removeChild(tableRow);
+                            }else{
+                                console.error('Failed to remove product from wishlist');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                        }
+
+                    })
+            })
+            });
+        </script>

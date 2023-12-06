@@ -182,112 +182,115 @@
 		
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
-		const placeOrderButton = document.getElementById('placeOrderButton');
-		const changeAddressButton = document.getElementById('changeAddressButton'); 
+    const placeOrderButton = document.getElementById('placeOrderButton');
+    const changeAddressButton = document.getElementById('changeAddressButton');
 
-		placeOrderButton.addEventListener('click', function (event) {
-			event.preventDefault(); 
+    placeOrderButton.addEventListener('click', function (event) {
+        event.preventDefault();
 
-			// Get the selected payment method
-			const paymentMethod = document.querySelector('input[type="radio"][name="paymentMethod"]:checked').value;
+        // Get the selected payment method
+        const paymentMethod = document.querySelector('input[type="radio"][name="paymentMethod"]:checked').value;
 
-			console.log("paymentMethod:", paymentMethod);
+        console.log("paymentMethod:", paymentMethod);
 
-			fetch('/place-order', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					paymentMethod: paymentMethod,
-				}),
-			})
-			.then(response => response.json()) 
-			.then(data => {
-                console.log("dataaaaaaaaaaaaaaa:",data);
-				if(data.success){
-					console.log("Response from the server:", data.message);
+        fetch('/place-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                paymentMethod: paymentMethod,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("dataaaaaaaaaaaaaaa:",data);
+            if(data.success){
+                console.log("Response from the server:", data.message);
 
-					const orderId=data.orderId;
-                     
-					window.location.href = '/orderSuccess?orderId='+orderId; 
-                    
-				} else{
-					console.log("response reached here..");
-					
-					
-					razorpayPayment(data)
-				}
-				
-				
-				
-			})
-			.catch(error => {
-				console.error('Error:', error);
-			});
-		});
-        function razorpayPayment(order){
-			var options = {
-    "key": "rzp_test_actyaWU6qykYib", // Enter the Key ID generated from the Dashboard
-    "amount": order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
-    "currency": "INR",
-    "name": "Bake House",
-    "description": "Test Transaction",
-    "image": "https://example.com/your_logo",
-    "order_id": order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-    "handler": function (response){
-        
+                const orderId = data.orderId;
 
-		verifyPayment(response,order)
-    },
-    "prefill": {
-        "name": "Gaurav Kumar",
-        "email": "gaurav.kumar@example.com",
-        "contact": "9000090000"
-    },
-    "notes": {
-        "address": "Razorpay Corporate Office"
-    },
-    "theme": {
-        "color": "#3399cc"
+                window.location.href = '/orderSuccess?orderId=' + orderId;
+
+            } else if (data.message === "Insufficient Wallet Balance") {
+                Swal.fire({
+                    title: 'Insufficient Wallet Balance',
+                    text: 'Your wallet balance is insufficient. Recharge your wallet to place the order.',
+                    icon: 'warning',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Handle wallet recharge logic here
+                        // Redirect to wallet recharge page or initiate recharge process
+                    }
+                });
+            } else {
+                console.log("response reached here..");
+
+                razorpayPayment(data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    function razorpayPayment(order){
+        var options = {
+            "key": "rzp_test_actyaWU6qykYib", 
+            "amount": order.amount, 
+            "currency": "INR",
+            "name": "Bake House",
+            "description": "Test Transaction",
+            "image": "https://example.com/your_logo",
+            "order_id": order.id, 
+            "handler": function (response){
+                verifyPayment(response, order);
+            },
+            "prefill": {
+                "name": "Gaurav Kumar",
+                "email": "gaurav.kumar@example.com",
+                "contact": "9000090000"
+            },
+            "notes": {
+                "address": "Razorpay Corporate Office"
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
     }
-};
-    var rzp1 = new Razorpay(options);
-	rzp1.open();
-		}
 
-function verifyPayment(payment,order){
-	
-	const response= fetch('/verify-payment',{
-		method:'POST',
-		headers:{
-			'Content-Type':'application/json',
-		},
-		body:JSON.stringify({
-			paymentDetails:payment,
-			orderDetails:order
-		})
-	})
-	.then(response=>response.json())
-	.then(data=>{
-		if(data.status===true){
-			const orderId = data.orderId;
-			window.location.href = '/orderSuccess?orderId=' + orderId;
-		}else{
-			console.error("Order failed:", data);
-		}
-	})
-	
-}
+    function verifyPayment(payment, order){
+        const response = fetch('/verify-payment',{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+            },
+            body:JSON.stringify({
+                paymentDetails: payment,
+                orderDetails: order
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === true){
+                const orderId = data.orderId;
+                window.location.href = '/orderSuccess?orderId=' + orderId;
+            } else {
+                console.error("Order failed:", data);
+            }
+        });
+    }
 
+    changeAddressButton.addEventListener('click', function(event){
+        event.preventDefault();
+        window.location.href = '/addressManagement';
+    });
+});
 
-
-
-		changeAddressButton.addEventListener('click',function(event){
-			event.preventDefault();
-			window.location.href = '/addressManagement';
-		})
-	});
 
 </script>
 
@@ -297,5 +300,4 @@ function verifyPayment(payment,order){
 
 
 		
-
 		<%- include('../layouts/footer')%>

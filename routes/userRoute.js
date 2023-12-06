@@ -53,8 +53,6 @@ user_route.post('/signup',userController.insertUser)
 
 user_route.get('/login',auth.isLogout,userController.loadLogin);
 
-
-user_route.get('/verifyMail',userController.verifyMail);
 user_route.post('/login',userController.verifyLogin)
 
 user_route.get('/home',auth.isLogin,userController.loadHome)
@@ -72,7 +70,11 @@ user_route.get('/edit', auth.isLogin, userController.editLoad);
 
 user_route.get('/shop',auth.isLogin,userController.shopLoad); 
 
+user_route.get('/wishList',auth.isLogin,userController.wishListLoad);
+user_route.post('/addtoWishList',auth.isLogin,userController.addtoWishList);
+user_route.post('/removeFromWishList',auth.isLogin,userController.removeFromWishList);
 user_route.get('/productsByCategory',auth.isLogin,userController.productsByCategory);
+user_route.get('/get-all-products',auth.isLogin,userController.getAllProducts);
 user_route.get('/singleProduct',auth.isLogin,userController.singleProductView);
 
 user_route.get('/cart',auth.isLogin,userController.loadCart);
@@ -107,10 +109,6 @@ user_route.post('/verify-payment',auth.isLogin,userController.verifyPayment)
 
 user_route.post('/cancelOrderRequest/:orderId', auth.isLogin, userController.orderCancelRequest);
 
-
-
-
-
 user_route.post('/edit',userController.updateProfile);
 
 user_route.post('/otpverify',userController.otpverify);
@@ -126,6 +124,10 @@ user_route.post('/updateAddress',auth.isLogin,userController.updateAddress);
 user_route.get('/deleteAddress',auth.isLogin,userController.deleteAddress);
 
 user_route.get('/setasDefault',auth.isLogin,userController.setasDefault);
+
+user_route.get('/wallet',auth.isLogin,userController.walletPageLoad);
+
+user_route.post('/walletAmount',auth.isLogin,userController.walletRecharging)
 
 
 

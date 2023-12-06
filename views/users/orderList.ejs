@@ -36,7 +36,7 @@
 
 
 
-<% if (orders && orders.length > 0) { %>
+<% if ( typeof orders !='undefined'  && orders.length > 0) { %>
     <table>
         <thead>
             <tr>
@@ -51,7 +51,7 @@
         <tbody>
             <% orders.forEach(order => { %>
                 <tr>
-                    <td><%= order.date %></td>
+                    <td><%= new Date(order.date).toLocaleString('en-US',{timeZone:'Asia/Kolkata'}) %></td>
                     <td><%= order.orderId %></td>
                     <td>$<%= order.total %></td>
                     <td><%= order.paymentMethod %></td>
@@ -73,6 +73,6 @@
         </tbody>
     </table>
 <% } else { %>
-    <p class="no-orders">No orders found.</p>
+    <h1>No orders found.</h1> 
 <% } %>
 <%- include('../layouts/footer')%>

@@ -7,11 +7,14 @@ const Category=require('../models/categoryModel')
 const Cart=require('../models/cartModel');
 const Coupen=require('../models/coupenModel');
 const Order=require('../models/orderModel');
+const Wallet=require('../models/walletModel');
+const WishList=require('../models/wishListModel');
 const nodemailer = require('nodemailer')
 const config = require('../config/config')
 const otpGenerator= require('otp-generator');
 const Razorpay=require('razorpay')
 const crypto=require('crypto');
+const { Transaction } = require('mongodb');
 
  let otpStorage={};
 
@@ -56,7 +59,7 @@ const  sendVerifyMail=async(name,email,user_id)=>{
             subject:"for verfication mail",
             html: `
             <p>Hi ${name}, this is the OTP for you:${otp}</p>
-            <a href="http://localhost:3000/verifyMail?email=${email}&otp=${otp}&id=${user_id}">Verify Email</a>
+            
 
           `,
         }
@@ -99,6 +102,8 @@ const insertUser = (userDatas, res) => {
             const message='Mobile number already exist. Please use a different mobile number';
             res.render('signup', { message});
         } else {
+
+            console.log("saving hereee");
             const userData = await user.save();
 
             if (userData) {
@@ -259,6 +264,168 @@ async function generateRazorpay(orderId, total) {
 }
 
 
+async function walletRecharging(userId, rechargedAmount) {
+    try {
+        
+        let wallet = await Wallet.findOne({ userId: userId });
+        console.log("wallet:",wallet);
+
+        if (wallet === null) {
+            wallet = new Wallet({
+                userId: userId, 
+                walletAmount: parseInt(rechargedAmount)
+            });
+        } else {
+            console.log("reached on else");
+            wallet.walletAmount += parseInt(rechargedAmount);
+        }
+
+        await wallet.save(); 
+
+        return wallet;
+    } catch (error) {
+        console.error("Error in walletRecharging:", error);
+        throw error; 
+    }
+}
+
+
+async function getWallet(userId){
+    try {
+        const wallet= await Wallet.findOne({userId:userId});
+        if(wallet){
+            return wallet;
+        }else{
+            return;
+        }
+    } catch (error) {
+        console.error("Error in walletRecharging:", error);
+        throw error; 
+    }
+}
+
+async function updateWalletBalance(userId,remainingBalance){
+    try {
+        const wallet= await Wallet.findOne({userId:userId});
+        if(wallet){
+            wallet.walletAmount=remainingBalance
+            await wallet.save();
+        }
+    } catch (error) {
+        
+    }
+}
+
+async function getDebitTransactions(userId) {
+    try {
+        const debitedWalletData = await Order.find({
+            userId:userId,
+            paymentMethod: 'wallet',
+            cancelledOrder: { $ne: true }
+        });
+
+        let debitedDetails = [];
+        if (debitedWalletData && debitedWalletData.length > 0) {
+            debitedDetails = debitedWalletData.map(item => {
+                return {
+                    amount: item.totalToPay,
+                    date: new Date(item.date).toLocaleDateString()
+                };
+            });
+        }
+
+
+        return debitedDetails;
+    } catch (error) {
+        console.error('Error fetching debited wallet transactions:', error);
+        throw error;
+    }
+}
+
+async function getCreditTransactions(userId){
+    try {
+        const creditedWalletData= await Order.find({
+            userId:userId,
+            paymentMethod:'online',
+            cancelledOrder:true
+        })
+        
+        let creditedDetails=[];
+        if(creditedWalletData && creditedWalletData.length >0){
+            creditedDetails= creditedWalletData.map(item=>{
+                return{
+                    amount:item.totalToPay,
+                    date: new Date(item.date).toLocaleDateString()
+                }
+            })
+        }
+   
+       return creditedDetails;
+    } catch (error) {
+        console.error('Error fetching credited wallet transactions:', error);
+        throw error;
+    }
+}
+
+
+async function addProductTowishList(productId,userId){
+    try {
+        let wishList= await WishList.findOne({user_id:userId});
+        if(!wishList){
+            wishList=new WishList({
+                user_id:userId,
+                products:[]
+            })
+        }
+        const productAlreadyExist=wishList.products.some(item=>item.productId.equals(productId));
+
+        if(productAlreadyExist){
+            return "Already Exist"
+        }else{
+            wishList.products.push({
+                productId:productId,
+                addedAt:Date.now()
+            })
+
+            await wishList.save()
+            return "Product added to the wishlist successfully";
+        }
+    } catch (error) {
+        console.error('Error adding product to wishlist:', error);
+        throw new Error('Internal server error');
+    }
+}
+
+async function removeFromWishList(productId,userId){
+    try {
+        let wishList=await WishList.findOne({user_id:userId});
+        if(wishList){
+             wishList.products=wishList.products.filter(product=>product.productId.toString()!=productId) ;
+             await wishList.save();
+             return {success:true};
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        throw error; 
+    }
+}
+
+async function getWishListData(userId) {
+    try {
+        let wishList = await WishList.find({ user_id: userId }).populate('products.productId')
+        if (wishList) {
+            return wishList
+        }
+
+    } catch (error) {
+          console.error("error");
+          throw new Error('Error ')
+    }
+}
+
+
+
+
 module.exports ={
 
     insertUser,
@@ -270,6 +437,14 @@ module.exports ={
     getCheckoutData,
     generateRazorpay,
     verifyPayment,
-    changePaymentStatus
+    changePaymentStatus,
+    walletRecharging,
+    getWallet,
+    updateWalletBalance,
+    getDebitTransactions,
+    getCreditTransactions,
+    addProductTowishList,
+    getWishListData,
+    removeFromWishList
 
 }

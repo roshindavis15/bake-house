@@ -111,11 +111,12 @@ const cancellingOrder=async(orderId)=>{
         console.log(order);
     
     if(order){
+        
         order.deliveryStatus = 'Cancelled';
         order.cancelRequest.status = 'Cancelled';
         order.cancelledOrder=true;
         await order.save();
-        return true;
+        return {success:true,paymentMethod:order.paymentMethod,userId:order.userId,total:order.totalToPay};
     }else{
         throw new Error('Order not found');
     }

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Add padding to the canvas */
+        canvas#salesChart {
+            padding: 100px; /* Adjust the padding as needed */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Adjusted canvas size -->
+    <canvas id="salesChart" width="600" height="400"></canvas> 
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const salesChartCanvas = document.getElementById('salesChart');
+            salesChartCanvas.width = 600; 
+            salesChartCanvas.height = 400; 
+
+            const fetchData = async () => {
+                try {
+                    const response = await fetch('/admin/getChartData');
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('dddd',data);
+                        updateChart(data); // Update the chart with the fetched data
+                    } else {
+                        throw new Error('Network response was not ok.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            };
+
+            const updateChart = ({chartData}) => {
+                
+                const months = Object.keys(chartData);
+                const sales = Object.values(chartData);
+
+                console.log('mm',months);
+                console.log('sales',sales);
+
+                const salesData = {
+                    labels: months,
+                    datasets: [{
+                        label: 'Sales',
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        data:sales// Set the fetched sales data
+                    }]
+                };
+
+                const ctx = salesChartCanvas.getContext('2d');
+
+                const myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: salesData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: false,
+                                    min: 100,
+                                    max: 1000,
+                                    stepSize: 100,
+                                    precision: 0   
+                                }
+                            }]
+                        }
+                    }
+                });
+            };
+
+        
+            fetchData();
+        });
+    </script>
+    
+</body>
+</html>

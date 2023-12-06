@@ -19,10 +19,14 @@ async function addToCart(userId, productId) {
 
         const existingProductIndex = cart.products.findIndex(product => product.productId.toString() === productId);
 
-    
+        let product; 
 
         if (existingProductIndex === -1) {
             product = await Product.findById(productId); 
+
+            if (!product) {
+                throw new Error('Product not found');
+            }
 
             if (product.stock > 0) {
                 cart.products.push({
@@ -36,7 +40,11 @@ async function addToCart(userId, productId) {
                 return { stock: product.stock, addToCart: false };
             }
         } else {
-            product = await Product.findById(productId); 
+            product = await Product.findById(productId);
+
+            if (!product) {
+                throw new Error('Product not found');
+            }
 
             if (product.stock <= 0) {
                 return { stock: product.stock, addToCart: false };
@@ -46,7 +54,7 @@ async function addToCart(userId, productId) {
             product.stock -= 1;
             await product.save();
         }
-
+        
         // Calculate the cart's total
         cart.total = cart.products.reduce((total, product) => total + product.total, 0);
 

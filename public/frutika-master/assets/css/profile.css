@@ -1,0 +1,47 @@
+
+        /* Custom styles for the profile heading */
+        .profile-heading {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #ff5733;
+            text-transform: uppercase;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        /* Custom styles for the table */
+        .profile-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        /* Custom styles for table headers */
+        .profile-table th {
+            text-align: left;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Custom styles for table rows */
+        .profile-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        /* Custom styles for Edit and Logout buttons */
+        .profile-buttons {
+            margin-top: 30px;
+        }
+
+        .profile-buttons a {
+            margin-right: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .profile-buttons a:hover {
+            background-color: #ff5733;
+            color: #fff;
+        }

@@ -50,14 +50,25 @@
                 <% for(i=0;i<product.length;i++){%>
 					
 					<div class="col-lg-4 col-md-6 text-center <%= product[i].category %>">
-					<div class="single-product-item">
-						<div class="product-image">
-							<a href="/singleProduct?pid=<%=product[i]._id %>"><img src="/frutika-master/uploads/<%=product[i].image[0] %>" alt="" style="width: 200px; height: 200px;"></a>
+						<div class="single-product-item">
+							<div class="product-image">
+								<a href="/singleProduct?pid=<%= product[i]._id %>">
+									<img src="/frutika-master/uploads/<%= product[i].image[0] %>" alt="" style="width: 200px; height: 200px;">
+								</a>
+							</div>
+							<h3><%= product[i].name %></h3>
+							<p class="product-price"><span>Per Kg</span><%= product[i].price %> </p>
+							
+								<button class="wishlist-btn" onclick="addToWishlist('<%= product[i]._id %>')" 
+									onmouseover="this.querySelector('i').style.color = 'red'"
+									onmouseout="this.querySelector('i').style.color = '#999'"
+									style="background-color: transparent; border: none; cursor: pointer; font-size: 1.5em; color: #999; transition: color 0.3s ease; margin-right: 10px;">
+									<i id="wishlistIcon" class="far fa-heart" style="transition: color 0.3s ease;"></i>
+								</button>
+							
+							
 						</div>
-						<h3><%=product[i].name%></h3>
-						<p class="product-price"><span>Per Kg</span><%=product[i].price%> </p>
-						<a href="cart.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
-					</div>
+						
 				</div>
 				<%}%>
 				
@@ -135,13 +146,101 @@
             return response.json();
         })
         .then(data => {
-            console.log(data.filteredProducts); 
-        })
+            console.log("data.filteredProducts:",data.filteredProducts); 
+			const productsGrid = document.querySelector('.product-lists');
+			productsGrid.innerHTML = '';
+			console.log("productsGrid:",productsGrid);
+			data.filteredProducts.forEach(product => {
+
+var productDiv = document.createElement('div');
+
+productDiv.classList.add('col-lg-4', 'col-md-6', 'text-center', product.category);
+
+          productDiv.innerHTML = `
+
+            <div class="single-product-item">
+
+              <div class="product-image">
+
+                <a href="/singleProduct?pid=${product._id}"><img src="/frutika-master/uploads/${product.image[0]}" alt="" style="width: 200px; height: 200px;"></a>
+
+              </div>
+
+              <h3>${product.name}</h3>
+
+              <p class="product-price"><span>Per Kg</span>${product.price} </p>
+
+              <a href="cart.html" class="cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</a>
+
+            </div>
+
+          `;
+
+
+          // Append the product div to the products-grid element
+
+          productsGrid.appendChild(productDiv);
+
+        });
+
+      })
+    
         .catch(error => {
             console.error('There was a problem with the fetch operation:', error);
         });
     });
 });
+
+
+//wish list script.......................................................//
+
+async function addToWishlist(productId) {
+    try {
+        const response = await fetch('/addtoWishList', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId: productId })
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+            if (responseData.message === 'Product added to the wishlist successfully') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Product added to the wishlist successfully'
+                });
+            } else if (responseData.message === 'Already Exist') {
+
+				
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Product Exists',
+                    text: 'This product already exists in your wishlist'
+                });
+            }
+        } else {
+            // Handle other response statuses if needed
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to add product to the wishlist'
+            });
+        }
+    } catch (error) {
+        console.error('Error adding product to wishlist:', error);
+        // Handle an error if an exception occurs
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while processing your request'
+        });
+    }
+}
+
+
 
 
 	</script>

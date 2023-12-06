@@ -89,6 +89,8 @@ admin_route.get('/isActive',adminAuth.isLogin,adminController.ActiveCategory);
 
 admin_route.get('/CoupenManagment',adminAuth.isLogin,coupenController.coupenManagementLoad);
 admin_route.get('/orderMaanagment',adminAuth.isLogin,adminController.orderManagmentLoad);
+admin_route.get('/sales',adminAuth.isLogin,adminController.salesLoad);
+admin_route.get('/getChartData',adminAuth.isLogin,adminController.getChartData);
 admin_route.get('/add-coupen',adminAuth.isLogin,coupenController.addCoupenLoad);
 admin_route.post('/addCoupen',adminAuth.isLogin,coupenController.addCoupen);
 admin_route.get('/activeCoupen',adminAuth.isLogin,coupenController.activatingCoupen);

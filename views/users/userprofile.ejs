@@ -1,59 +1,7 @@
 <%- include('../layouts/header')%>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        /* Custom styles for the profile heading */
-        .profile-heading {
-            font-size: 36px;
-            margin-bottom: 20px;
-            color: #ff5733;
-            text-transform: uppercase;
-            font-family: 'Open Sans', sans-serif;
-        }
 
-        /* Custom styles for the table */
-        .profile-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
 
-        /* Custom styles for table headers */
-        .profile-table th {
-            text-align: left;
-            font-weight: 500;
-            color: #333;
-        }
-
-        /* Custom styles for table rows */
-        .profile-table tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        /* Custom styles for Edit and Logout buttons */
-        .profile-buttons {
-            margin-top: 30px;
-        }
-
-        .profile-buttons a {
-            margin-right: 20px;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-
-        .profile-buttons a:hover {
-            background-color: #ff5733;
-            color: #fff;
-        }
-        
-    </style>
-</head>
-<body>
+    
     <!-- breadcrumb-section -->
 	<div class="breadcrumb-section breadcrumb-bg">
 		<div class="container">
@@ -69,7 +17,7 @@
 	</div>
 	<!-- end breadcrumb section -->
    
-    <div class="container mt-5">
+    <div class="container pt-150 pb-150">
         <div class="card profile-container">
             <div class="card-body">
                 <h1 class="profile-heading">Welcome, <%= user.name %></h1>
@@ -95,6 +43,7 @@
                     <!-- Add Address Management button here -->
                     <a href="/addressManagement" class="btn btn-info">Address Management</a>
                     <a href="/orders" class="btn btn-info">Orders</a>
+                    <a href="/wallet" class="btn btn-info">Wallet</a>
                 </div>
             </div>
         </div>
