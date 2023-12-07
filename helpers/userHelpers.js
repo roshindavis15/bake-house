@@ -10,6 +10,8 @@ const Order=require('../models/orderModel');
 const Wallet=require('../models/walletModel');
 const WishList=require('../models/wishListModel');
 const nodemailer = require('nodemailer')
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
 const config = require('../config/config')
 const otpGenerator= require('otp-generator');
 const Razorpay=require('razorpay')
@@ -424,7 +426,44 @@ async function getWishListData(userId) {
 }
 
 
+async function generateInvoiceFile(invoiceData) {
+    return new Promise((resolve, reject) => {
+        try {
+            const doc = new PDFDocument();
 
+            doc.fontSize(20).text('Invoice', { align: 'center' });
+            doc.moveDown();
+            doc.fontSize(12).text(`Order ID: ${invoiceData.orderId}`);
+            doc.fontSize(12).text(`Ordered Date: ${invoiceData.orderedDate}`);
+            doc.fontSize(12).text(`Delivery Status: ${invoiceData.deliveryStatus}`);
+            doc.moveDown();
+
+            doc.fontSize(16).text('Ordered Products:', { underline: true });
+            invoiceData.orderedProducts.forEach((product, index) => {
+                doc.fontSize(12).text(`Product ${index + 1}: ${product.productName}`);
+                doc.fontSize(12).text(`Price: $${product.productPrice}`);
+                doc.fontSize(12).text(`Quantity: ${product.quantity}`);
+                doc.fontSize(12).text(`Total: $${product.total}`);
+                doc.moveDown();
+            });
+
+            doc.fontSize(14).text(`Total to Pay: $${invoiceData.getTotalToPay}`, { align: 'right' });
+
+            const buffers = [];
+            doc.on('data', buffers.push.bind(buffers));
+            doc.on('end', () => {
+                const pdfData = Buffer.concat(buffers);
+                resolve(pdfData); // Resolve with the PDF data
+            });
+
+            doc.end(); // Finalize the document
+
+        } catch (error) {
+            console.error('Error generating invoice:', error);
+            reject(error);
+        }
+    });
+}
 
 module.exports ={
 
@@ -445,6 +484,7 @@ module.exports ={
     getCreditTransactions,
     addProductTowishList,
     getWishListData,
-    removeFromWishList
+    removeFromWishList,
+    generateInvoiceFile
 
 }

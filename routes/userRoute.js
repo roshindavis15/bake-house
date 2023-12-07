@@ -71,10 +71,15 @@ user_route.get('/edit', auth.isLogin, userController.editLoad);
 user_route.get('/shop',auth.isLogin,userController.shopLoad); 
 
 user_route.get('/wishList',auth.isLogin,userController.wishListLoad);
+
 user_route.post('/addtoWishList',auth.isLogin,userController.addtoWishList);
+
 user_route.post('/removeFromWishList',auth.isLogin,userController.removeFromWishList);
+
 user_route.get('/productsByCategory',auth.isLogin,userController.productsByCategory);
+
 user_route.get('/get-all-products',auth.isLogin,userController.getAllProducts);
+
 user_route.get('/singleProduct',auth.isLogin,userController.singleProductView);
 
 user_route.get('/cart',auth.isLogin,userController.loadCart);
@@ -104,6 +109,8 @@ user_route.get('/orderSummaryPage',auth.isLogin,userController.orderSummaryPageL
 user_route.get('/orders',auth.isLogin,userController.viewOrderList);
 
 user_route.get('/view-order',auth.isLogin,userController.viewOrder);
+
+user_route.get('/downloadInvoice',auth.isLogin,userController.downloadInvoice);
 
 user_route.post('/verify-payment',auth.isLogin,userController.verifyPayment)
 

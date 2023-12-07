@@ -16,6 +16,7 @@ const nodemailer = require('nodemailer');
 const config = require("../config/config");
 const randomstring = require('randomstring')
 const otpGenerator = require('otp-generator');
+const fs = require('fs');
 
 
 
@@ -667,6 +668,30 @@ const viewOrder = async (req, res) => {
     }
 }
 
+const downloadInvoice = async (req, res) => {
+    try {
+        const orderId = req.query.orderId;
+
+        const invoiceData = await orderHelper.orderSummaryData(orderId);
+        console.log("invoiceData:", invoiceData);
+        if (invoiceData) {
+            const pdfData = await userHelper.generateInvoiceFile(invoiceData);
+            res.setHeader('Content-Disposition', `attachment; filename="invoice.pdf"`);
+            res.setHeader('Content-Type', 'application/pdf');
+
+            res.end(pdfData);
+
+        } else {
+            res.status(404).json({ error: 'Invoice data not found' });
+        }
+    } catch (error) {
+        console.error('Error generating invoice:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
 
 const orderCancelRequest=async(req,res)=>{
     try {
@@ -1094,7 +1119,8 @@ module.exports = {
     getAllProducts,
     wishListLoad,
     addtoWishList,
-    removeFromWishList
+    removeFromWishList,
+    downloadInvoice
 
 
 }
