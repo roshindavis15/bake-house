@@ -1,131 +1,155 @@
-<%-include('../layouts/admin/adminSidebar')%>
+  <%-include('../layouts/admin/adminSidebar')%>
 
-  <!--Start Dashboard Content-->
+    <!--Start Dashboard Content-->
 
-  <div class="card mt-3">
-    <div class="card-content">
-        <div class="row row-group m-0">
-            <div class="col-12 col-lg-6 col-xl-3 border-light">
-              <%if (typeof placedOrderCount != 'undefined'){%>
-                <div class="card-body">
-                  <h5 class="text-white mb-0"><%= placedOrderCount %><span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
-                  <%}else{%>
-                    <h5 class="text-white mb-0">0<span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
+    <div class="card mt-3">
+      <div class="card-content">
+          <div class="row row-group m-0">
+              <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <%if (typeof placedOrderCount != 'undefined'){%>
+                  <div class="card-body">
+                    <h5 class="text-white mb-0"><%= placedOrderCount %><span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
+                    <%}else{%>
+                      <h5 class="text-white mb-0">0<span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
 
-                  <%}%>
-                  <div class="progress my-3" style="height:3px;">
-                       <div class="progress-bar" style="width:55%"></div>
-                    </div>
-                  <p class="mb-0 text-white small-font">Total Placed Orders </p>
+                    <%}%>
+                    <div class="progress my-3" style="height:3px;">
+                        <div class="progress-bar" style="width:55%"></div>
+                      </div>
+                    <p class="mb-0 text-white small-font">Total Placed Orders </p>
+                  </div>
+              </div>
+
+
+              <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <%if (typeof cancelledOrderCount != 'undefined'){%>
+                  <div class="card-body">
+                    <h5 class="text-white mb-0"><%= cancelledOrderCount %><span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
+                    <%}else{%>
+                      <h5 class="text-white mb-0">0<span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
+
+                    <%}%>
+                    <div class="progress my-3" style="height:3px;">
+                        <div class="progress-bar" style="width:55%"></div>
+                      </div>
+                    <p class="mb-0 text-white small-font">Total cancelled orders </p>
+                  </div>
+              </div>
+
+              <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <%if (typeof deliveredOrderCount != 'undefined'){%>
+                  <div class="card-body">
+                    <h5 class="text-white mb-0"><%= deliveredOrderCount %><span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
+                    <%}else{%>
+                      <h5 class="text-white mb-0">0<span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
+
+                    <%}%>
+                    <div class="progress my-3" style="height:3px;">
+                        <div class="progress-bar" style="width:55%"></div>
+                      </div>
+                    <p class="mb-0 text-white small-font">Total Delivered orders </p>
+                  </div>
+              </div>
+                
+              </div>
+          </div>
+            
+          <div class="container">
+            <div class="row justify-content-end">
+                <div class="col-lg-4">
+                    <form id="salesForm" action="/admin/getSalesData" method="get">
+                        <div class="form-row">
+                            <div class="col">
+                                <select id="reportType" name="reportType" class="form-control">
+                                    <option value="yearly">Yearly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="daily">Daily</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary">View Sales Report</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </div>
-
-
-            <div class="col-12 col-lg-6 col-xl-3 border-light">
-              <%if (typeof cancelledOrderCount != 'undefined'){%>
-                <div class="card-body">
-                  <h5 class="text-white mb-0"><%= cancelledOrderCount %><span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
-                  <%}else{%>
-                    <h5 class="text-white mb-0">0<span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
-
-                  <%}%>
-                  <div class="progress my-3" style="height:3px;">
-                       <div class="progress-bar" style="width:55%"></div>
-                    </div>
-                  <p class="mb-0 text-white small-font">Total cancelled orders </p>
+                <div class="col-lg-4">
+                    <select id="chartType" class="form-control">
+                        <option value="yearly">Yearly Chart</option>
+                        <option value="monthly">Monthly Chart</option>
+                        <option value="daily">Daily Chart</option>
+                    </select>
                 </div>
-            </div>
-
-            <div class="col-12 col-lg-6 col-xl-3 border-light">
-              <%if (typeof deliveredOrderCount != 'undefined'){%>
-                <div class="card-body">
-                  <h5 class="text-white mb-0"><%= deliveredOrderCount %><span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
-                  <%}else{%>
-                    <h5 class="text-white mb-0">0<span class="float-right"><i class="fa fa-shopping-cart"></i></span></h5>
-
-                  <%}%>
-                  <div class="progress my-3" style="height:3px;">
-                       <div class="progress-bar" style="width:55%"></div>
-                    </div>
-                  <p class="mb-0 text-white small-font">Total Delivered orders </p>
-                </div>
-            </div>
-               
             </div>
         </div>
-    </div>
-     <canvas id="salesChart" ></canvas> 
- </div>  
-
-  
- 
-
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-      document.addEventListener('DOMContentLoaded', () => {
-          const salesChartCanvas = document.getElementById('salesChart');
-    
-          salesChartCanvas.width = 600; 
-          salesChartCanvas.height = 400; 
-
-          const fetchData = async () => {
-              try {
-                  const response = await fetch('/admin/getChartData');
-                  if (response.ok) {
-                      const data = await response.json();
-                      console.log('dddd',data);
-                      updateChart(data); // Update the chart with the fetched data
-                  } else {
-                      throw new Error('Network response was not ok.');
-                  }
-              } catch (error) {
-                  console.error('Error fetching data:', error);
-              }
-          };
-
-          const updateChart = ({chartData}) => {
-              
-              const months = Object.keys(chartData);
-              const sales = Object.values(chartData);
-
-              console.log('mm',months);
-              console.log('sales',sales);
-
-              const salesData = {
-                  labels: months,
-                  datasets: [{
-                      label: 'Sales',
-                      backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                      borderColor: 'rgba(255, 99, 132, 1)',
-                      borderWidth: 1,
-                      data:sales// Set the fetched sales data
-                  }]
-              };
-
-              const ctx = salesChartCanvas.getContext('2d');
-
-              const myChart = new Chart(ctx, {
-                  type: 'bar',
-                  data: salesData,
-                  options: {
-                      responsive: false,
-                      maintainAspectRatio: false,
-                      scales: {
-                          yAxes: [{
-                              ticks: {
-                                  beginAtZero: true,
-                                  min: 100,
-                                  max: 1000,
-                                  stepSize: 100,
-                                  precision: 0   
-                              }
-                          }]
-                      }
-                  }
-              });
-          };
-
-      
-          fetchData();
-      });
-  </script>
+        <div class="card mt-3">
+            <div class="card-content">
+                <canvas id="salesChart" width="600" height="400"></canvas>
+            </div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const salesChartCanvas = document.getElementById('salesChart');
+                const chartTypeSelector = document.getElementById('chartType');
+        
+                const fetchData = async (reportType) => {
+                    try {
+                        const response = await fetch(`/admin/getChartData?reportType=${reportType}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            updateChart(data.chartData);
+                        } else {
+                            throw new Error('Network response was not ok.');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching data:', error);
+                    }
+                };
+        
+                const updateChart = ({ chartData }) => {
+                    const months = Object.keys(chartData);
+                    const sales = Object.values(chartData);
+        
+                    const salesData = {
+                        labels: months,
+                        datasets: [{
+                            label: 'Sales',
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            data: sales,
+                        }]
+                    };
+        
+                    const ctx = salesChartCanvas.getContext('2d');
+                    const myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: salesData,
+                        options: {
+                            responsive: false,
+                            maintainAspectRatio: false,
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        min: 100,
+                                        max: 1000,
+                                        stepSize: 100,
+                                        precision: 0
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                };
+        
+                chartTypeSelector.addEventListener('change', (event) => {
+                    const selectedType = event.target.value;
+                    fetchData(selectedType);
+                });
+        
+                fetchData('yearly'); 
+            });
+        </script>
+        

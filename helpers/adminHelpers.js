@@ -207,30 +207,186 @@ const getTotalDeliveredOrderCount=async()=>{
 }
   
 
-const getChartData= async(req,res)=>{
+const getChartData = async (reportType) => {
   try {
-    const orders = await Order.find({ cancelledOrder: { $ne: true } }).lean();
-    
-    const salesData={};
-     orders.forEach(order=>{
-      const date=new Date(order.date);
-      const month = date.toLocaleString('en-US', { month: 'long' });
-      const totalPayment = order.totalToPay || 0;
+    console.log("reportType:",reportType);
+      const orders = await Order.find({ cancelledOrder: { $ne: true } }).lean();
+      const salesData = {};
 
-      if (!salesData[month]) {
-        salesData[month] = 0;
-    }
+      
+      orders.forEach(order => {
+          const date = new Date(order.date);
+          let timeKey = '';
 
-    salesData[month] += totalPayment;
-    })
-console.log("salesData:",salesData);
+          
+          if (reportType === 'yearly') {
+              timeKey = date.getFullYear().toString();
+          } else if (reportType === 'monthly') {
+              const month = date.toLocaleString('en-US', { month: 'long' });
+              timeKey = `${month} ${date.getFullYear()}`;
+          } else if (reportType === 'daily') {
+              const day = date.toLocaleDateString('en-US');
+              timeKey = day;
+          }
 
-return salesData;
+          const totalPayment = order.totalToPay || 0;
+
+          if (!salesData[timeKey]) {
+              salesData[timeKey] = 0;
+          }
+
+          salesData[timeKey] += totalPayment;
+      });
+
+      // console.log("salesData:", salesData);
+
+      return salesData;
 
   } catch (error) {
-    console.log(error.message);
+      console.error(error.message);
+      throw new Error('Error generating sales data');
   }
-}
+};
+
+
+const getSalesData = async (reportType) => {
+  try {
+      let salesData;
+      const deliveredOrders = await Order.find({ deliveryStatus: 'delivered' });
+      console.log("deliveredOrders:",deliveredOrders);
+      
+      if (reportType === 'yearly') {
+          const currentYear = new Date().getFullYear();
+
+          const yearlyOrders = deliveredOrders.filter(order => {
+              return new Date(order.date).getFullYear() === currentYear;
+          });
+
+          const yearlySales = yearlyOrders.reduce((total, order) => {
+              return total + order.totalToPay;
+          }, 0);
+       
+          const orderDetails = yearlyOrders.map(order => {
+              return {
+                  name: order.addressDetails.name,
+                  date: order.date,
+                  total: order.totalToPay,
+                  paymentMethod: order.paymentMethod
+                  
+              };
+          });
+          
+          const productDetails = yearlyOrders.reduce((acc, order) => {
+              order.products.forEach(product => {
+                  if (acc[product.productId]) {
+                      acc[product.productId].quantity += 1;
+                  } else {
+                      acc[product.productId] = {
+                        name: product.productName,
+                          quantity: 1
+                      };
+                  }
+              });
+              return acc;
+          }, {});
+
+          salesData = {
+              reportType: 'Yearly',
+              totalSales: yearlySales,
+              orderDetails: orderDetails,
+              productDetails: productDetails
+              
+          };
+      } else if (reportType === 'monthly') {
+          const currentMonth = new Date().getMonth() + 1;
+          
+          const monthlyOrders = deliveredOrders.filter(order => {
+              return new Date(order.date).getMonth() + 1 === currentMonth;
+              
+    
+          });
+          
+          const monthlySales = monthlyOrders.reduce((total, order) => {
+              return total + order.totalToPay;
+          }, 0);
+          
+          const orderDetails = monthlyOrders.map(order => {
+              return {
+                  name: order.name,
+                  date: order.date,
+                  total: order.totalToPay,
+                  paymentMethod: order.paymentMethod
+              };
+          });
+        
+          const productDetails = monthlyOrders.reduce((acc, order) => {
+              order.products.forEach(product => {
+                  if (acc[product.productId]) {
+                      acc[product.productId].quantity += 1;
+                  } else {
+                      acc[product.productId] = {
+                          name: product.name,
+                          quantity: 1
+                      };
+                  }
+              });
+              return acc;
+          }, {});
+
+          salesData = {
+              reportType: 'Monthly',
+              totalSales: monthlySales,
+              orderDetails: orderDetails,
+              productDetails: productDetails
+              
+          };
+      }else if(reportType==='daily'){
+        const currentDate=new Date().toISOString().split('T')[0];
+
+        const dailyOrders = deliveredOrders.filter(order => {
+          return order.date.toISOString().split('T')[0] === currentDate;
+        });
+
+        const dailySales = dailyOrders.reduce((total, order) => {
+          return total + order.totalToPay;
+        }, 0);
+
+        const orderDetails = dailyOrders.map(order => {
+          return {
+            name: order.addressDetails.name,
+            date: order.date,
+            total: order.totalToPay,
+            paymentMethod: order.paymentMethod
+          };
+        });
+        const productDetails = dailyOrders.reduce((acc, order) => {
+          order.products.forEach(product => {
+            if (acc[product.productId]) {
+              acc[product.productId].quantity += 1;
+            } else {
+              acc[product.productId] = {
+                name: product.productName,
+                quantity: 1
+              };
+            }
+          });
+          return acc;
+        }, {});
+  
+        salesData = {
+          reportType: 'Daily',
+          totalSales: dailySales,
+          orderDetails: orderDetails,
+          productDetails: productDetails
+        };
+      }
+  
+      return salesData;
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+      throw new Error('Failed to fetch sales data');
+    }
+  };
 
 
     module.exports={
@@ -243,6 +399,7 @@ return salesData;
         getTotalDeliveredOrderCount,
         getChartData,
         updateProduct,
-        updateCategory
+        updateCategory,
+        getSalesData
       
     };

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://127.0.0.1:27017/bake_house_user_management_system").then((data)=>{
+require('dotenv').config();
+mongoose.connect(process.env.MONGODB_URL).then((data)=>{
     console.log('connected success');
 }).catch((err)=>{
 console.log(err.message);

@@ -12,6 +12,7 @@ const WishList=require('../models/wishListModel');
 const nodemailer = require('nodemailer')
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const ExcelJS = require('exceljs');
 const config = require('../config/config')
 const otpGenerator= require('otp-generator');
 const Razorpay=require('razorpay')
@@ -465,6 +466,53 @@ async function generateInvoiceFile(invoiceData) {
     });
 }
 
+
+async function generateExelInvoice(invoiceData){
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Invoice'); 
+    const columns = [
+        { header: 'Order ID', key: 'orderId' },
+        { header: 'Ordered Date', key: 'orderedDate' },
+        { header: 'Delivery Status', key: 'deliveryStatus' },
+        { header: 'Name', key: 'name' },
+        { header: 'Mobile', key: 'mobile' },
+        { header: 'Home Address', key: 'homeAddress' },
+        { header: 'Place', key: 'place' },
+        { header: 'Pincode', key: 'pincode' },
+        { header: 'Payment Method', key: 'paymentMethod' },
+        { header: 'Coupon Discount', key: 'couponDiscount' },
+        { header: 'Offer Discount', key: 'offerDiscount' },
+        { header: 'Total to Pay', key: 'totalToPay' },
+        { header: 'Cancellation Status', key: 'cancellationStatus' },
+    ];
+
+    // Adding columns to the worksheet
+    worksheet.columns = columns;
+
+    // Adding rows based on the provided invoiceData
+    worksheet.addRow({
+        orderId: invoiceData.orderId,
+        orderedDate: invoiceData.orderedDate,
+        deliveryStatus: invoiceData.deliveryStatus,
+        name: invoiceData.address.name,
+        mobile: invoiceData.address.mobile,
+        homeAddress: invoiceData.address.homeAddress,
+        place: invoiceData.address.place,
+        pincode: invoiceData.address.pincode,
+        paymentMethod: invoiceData.paymentMethod,
+        couponDiscount: invoiceData.couponDiscount,
+        offerDiscount: invoiceData.offerDiscount,
+        totalToPay: invoiceData.getTotalToPay,
+        cancellationStatus: invoiceData.cancellationStatus,
+    });
+
+    // Generate the Excel file buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    return buffer; // Returning the Excel file buffer
+}
+
+
 module.exports ={
 
     insertUser,
@@ -485,6 +533,7 @@ module.exports ={
     addProductTowishList,
     getWishListData,
     removeFromWishList,
-    generateInvoiceFile
+    generateInvoiceFile,
+    generateExelInvoice
 
 }

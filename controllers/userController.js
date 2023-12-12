@@ -691,6 +691,26 @@ const downloadInvoice = async (req, res) => {
 };
 
 
+const downloadInvoiceExcel = async (req, res) => {
+    try {
+        const orderId = req.query.orderId;
+        const invoiceData = await orderHelper.orderSummaryData(orderId);
+        
+        if (invoiceData) {
+            const excelData = await userHelper.generateExelInvoice(invoiceData);
+
+
+            res.setHeader('Content-Disposition', 'attachment; filename="invoice.xlsx"');
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.send(excelData); 
+        } else {
+            res.status(404).json({ error: 'Invoice data not found' });
+        }
+    } catch (error) {
+        console.error('Error downloading Excel invoice:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
 
 
 const orderCancelRequest=async(req,res)=>{
@@ -1120,7 +1140,8 @@ module.exports = {
     wishListLoad,
     addtoWishList,
     removeFromWishList,
-    downloadInvoice
+    downloadInvoice,
+    downloadInvoiceExcel
 
 
 }

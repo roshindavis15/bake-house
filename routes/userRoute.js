@@ -112,6 +112,8 @@ user_route.get('/view-order',auth.isLogin,userController.viewOrder);
 
 user_route.get('/downloadInvoice',auth.isLogin,userController.downloadInvoice);
 
+user_route.get('/downloadInvoiceExcel',auth.isLogin,userController.downloadInvoiceExcel)
+
 user_route.post('/verify-payment',auth.isLogin,userController.verifyPayment)
 
 user_route.post('/cancelOrderRequest/:orderId', auth.isLogin, userController.orderCancelRequest);

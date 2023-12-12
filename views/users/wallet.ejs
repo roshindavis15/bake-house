@@ -50,13 +50,14 @@
 
         <form>
             <div class="form-group">
-                <% if (typeof wallet !== 'undefined' && wallet !== null) { %>
-                    <label class="balance-label" id="balanceLabel" for="balanceAmount">Balance: <%= wallet.walletAmount %></label>
-                <% } else { %>
-                    <label id="balanceLabel" for="balanceAmount">Balance: 0</label>
-                <% } %>
+                <% if (typeof wallet !=='undefined' && wallet !==null) { %>
+                    <label class="balance-label" id="balanceLabel" for="balanceAmount">Balance: <%= wallet.walletAmount %>
+                            </label>
+                    <% } else { %>
+                        <label id="balanceLabel" for="balanceAmount">Balance: 0</label>
+                        <% } %>
             </div>
-
+        
             <button type="submit" class="btn btn-primary">Add Balance</button>
         </form>
     </div>

@@ -85,13 +85,11 @@ const loadDashboard = async (req, res) => {
     try {
         
         const chartData= await adminHelper.getChartData();
-        console.log("chartData:",chartData);
+        
         const placedOrderCount= await adminHelper.getTotalPlacedOrderCount();
         const cancelledOrderCount= await adminHelper.getTotalCancelledOrderCount();
-        const deliveredOrderCount= await adminHelper.getTotalDeliveredOrderCount()
-        console.log("placedOrderCount:",placedOrderCount);
-        console.log("cancelledOrderCount:",cancelledOrderCount);
-        console.log("deliveredOrderCount:",deliveredOrderCount);
+        const deliveredOrderCount= await adminHelper.getTotalDeliveredOrderCount();
+        
         res.render('index',{placedOrderCount:placedOrderCount,cancelledOrderCount:cancelledOrderCount,deliveredOrderCount});
 
     } catch (error) {
@@ -570,9 +568,10 @@ const salesLoad =async (req,res)=>{
 
 const getChartData=async(req,res)=>{
     try {
-
-        console.log("reached hereree");
-        const chartData= await adminHelper.getChartData();
+      const reportType=req.query.reportType;
+        console.log("recahed here");
+        
+        const chartData= await adminHelper.getChartData(reportType);
         console.log(chartData);
         if(chartData){
             res.json({chartData});
@@ -582,7 +581,20 @@ const getChartData=async(req,res)=>{
     }
 }
 
+const getSalesData=async(req,res)=>{
+    try {
+        const reportType = req.query.reportType;
+        console.log("reportType:",reportType);
+        const salesData= await adminHelper.getSalesData(reportType);
+        console.log("salesData:", JSON.stringify(salesData, null, 2));
+        if(salesData){
+            res.render('salesReport',{salesData})
+        }
 
+    } catch (error) {
+        console.log(error.message);
+    }
+}
 
 
 
@@ -620,7 +632,8 @@ module.exports = {
     rejectCancellation,
     updateOrderStatus,
     salesLoad,
-    getChartData
+    getChartData,
+    getSalesData
 
 
 }

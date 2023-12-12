@@ -1,86 +1,128 @@
 <%- include('../layouts/header')%>
+    <style>
+        .download-btn:hover,
+        .view-btn:hover,
+        .download-excel-btn:hover {
+            background-color: #051922;
+            color: #f28123;
 
-<!-- search area -->
-<div class="search-area">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
-                <span class="close-btn"><i class="fas fa-window-close"></i></span>
-                <div class="search-bar">
-                    <div class="search-bar-tablecell">
-                        <h3>Search For:</h3>
-                        <input type="text" placeholder="Keywords">
-                        <button type="submit">Search <i class="fas fa-search"></i></button>
+        }
+
+        .download-excel-btn,
+        .view-btn,
+        .download-btn {
+            background-color: #f28123;
+            padding: 6px 12px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+    </style>
+
+    <!-- search area -->
+    <div class="search-area">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <span class="close-btn"><i class="fas fa-window-close"></i></span>
+                    <div class="search-bar">
+                        <div class="search-bar-tablecell">
+                            <h3>Search For:</h3>
+                            <input type="text" placeholder="Keywords">
+                            <button type="submit">Search <i class="fas fa-search"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- end search arewa -->
+    <!-- end search arewa -->
 
-<!-- breadcrumb-section -->
-<div class="breadcrumb-section breadcrumb-bg">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 offset-lg-2 text-center">
-                <div class="breadcrumb-text">
-                    
-                    <h1>Orders</h1>
+    <!-- breadcrumb-section -->
+    <div class="breadcrumb-section breadcrumb-bg">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2 text-center">
+                    <div class="breadcrumb-text">
+
+                        <h1>Orders</h1>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- end breadcrumb section -->
+    <!-- end breadcrumb section -->
 
 
 
-<% if ( typeof orders !='undefined'  && orders.length > 0) { %>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Order ID</th>
-                <th>Total</th>
-                <th>Payment Method</th>
-                <th>Status</th>
-                <th>Action</th> 
-                <th>invoice</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% orders.forEach(order => { %>
+    <% if ( typeof orders !='undefined' && orders.length> 0) { %>
+        <table>
+            <thead>
                 <tr>
-                    <td><%= new Date(order.date).toLocaleString('en-US',{timeZone:'Asia/Kolkata'}) %></td>
-                    <td><%= order.orderId %></td>
-                    <td>$<%= order.total %></td>
-                    <td><%= order.paymentMethod %></td>
-                    <td>
-                        <% if (order.status === 'Delivered') { %>
-                            <i class="fas fa-check-circle"></i> <%= order.status %>
-                        <% } else { %>
-                            <i class="fas fa-times-circle"></i> <%= order.status %>
-                        <% } %>
-                    </td>
-                    <td>
-                        <form action="/view-order" method="GET">
-                            <input type="hidden" name="orderId" value="<%= order.orderId %>">
-                            <button type="submit">View</button>
-                        </form>
-                    </td>
-                    <td>
-                        <form action="/downloadInvoice" method="GET">
-                            <input type="hidden" name="orderId" value="<%= order.orderId %>">
-                            <button type="submit">Download</button>
-                        </form>
-                    </td>
-                    
+                    <th>Date</th>
+                    <th>Order ID</th>
+                    <th>Total</th>
+                    <th>Payment Method</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                    <th>Download</th>
                 </tr>
-            <% }); %>
-        </tbody>
-    </table>
-<% } else { %>
-    <h1>No orders found.</h1> 
-<% } %>
-<%- include('../layouts/footer')%>
+            </thead>
+            <tbody>
+                <% orders.forEach(order=> { %>
+                    <tr>
+                        <td>
+                            <%= new Date(order.date).toLocaleString('en-US',{timeZone:'Asia/Kolkata'}) %>
+                        </td>
+                        <td>
+                            <%= order.orderId %>
+                        </td>
+                        <td>$<%= order.total %>
+                        </td>
+                        <td>
+                            <%= order.paymentMethod %>
+                        </td>
+                        <td>
+                            <% if (order.status==='Delivered' ) { %>
+                                <i class="fas fa-check-circle"></i>
+                                <%= order.status %>
+                                    <% } else { %>
+                                        <i class="fas fa-times-circle"></i>
+                                        <%= order.status %>
+                                            <% } %>
+                        </td>
+                        <td>
+                            <form action="/view-order" method="GET">
+                                <input type="hidden" name="orderId" value="<%= order.orderId %>">
+                                <button type="submit" class="view-btn">View</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form action="/downloadInvoice" method="GET">
+                                <input type="hidden" name="orderId" value="<%= order.orderId %>">
+                                <button type="submit" class="download-btn">PDF</button>
+                            </form>
+                            <form action="/downloadInvoiceExcel" method="GET">
+                                <input type="hidden" name="orderId" value="<%= order.orderId %>">
+                                <button type="submit" class="download-excel-btn">Excel</button>
+                            </form>
+                        </td>
+
+
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+        <% } else { %>
+            <h1>No orders found.</h1>
+            <% } %>
+                <%- include('../layouts/footer')%>
